@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package transfer.v1;
+
+option go_package = "project/pkg/pb;pb";
+
+import "google/api/annotations.proto";
+
+service TransferService {
+  rpc SendMoney (SendMoneyRequest) returns (SendMoneyResponse) {
+    option (google.api.http) = {
+      post: "/v1/transfer/send"
+      body: "*"
+    };
+  }
+
+  rpc ListTransactions (ListTransactionsRequest) returns (ListTransactionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/transfer/{user_id}/transactions"
+    };
+  }
+}
+
+// Request/Response messages
+
+message SendMoneyRequest {
+  string from = 1;
+  string to   = 2;
+  int64 amount = 3;
+}
+
+message SendMoneyResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message ListTransactionsRequest {
+  string user_id = 1;
+}
+
+message Transaction {
+  int id = 1;
+  string from = 2;
+  string to = 3;
+  int64 amount = 4;
+}
+
+message ListTransactionsResponse {
+  int64 number = 1;                  // Tổng số giao dịch
+  repeated Transaction transactions = 2; // Danh sách giao dịch
+}

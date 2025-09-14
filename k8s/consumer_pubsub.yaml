@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-consumer-pubsub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-consumer-pubsub
+  template:
+    metadata:
+      labels:
+        app: app-consumer-pubsub
+    spec:
+      containers:
+        - name: app-consumer-pubsub
+          image: docker.io/library/app-server:latest
+          imagePullPolicy: Never
+
+          command: ["./server", "pubsub-consumer"]
+          env:
+            - name: PROJECT_ID
+              value: demo-project
+            - name: PubSub_Endpoint
+              value: host.docker.internal:8085
+            - name: Pubsub_Subcription
+              value: sub-transactions
+            - name: Pubsub_Topic
+              value: transactions

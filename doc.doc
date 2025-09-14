@@ -1,0 +1,21 @@
+lệnh gen protobuf : protoc \
+  -I pkg/probuf \
+  -I $HOME/.local/include \
+  --go_out=pkg/pb --go_opt=paths=source_relative \
+  --go-grpc_out=pkg/pb --go-grpc_opt=paths=source_relative \
+  --grpc-gateway_out=pkg/pb --grpc-gateway_opt=paths=source_relative \
+  pkg/probuf/transfer.proto
+
+
+  build docker image : docker build -f demo-app.dockerfile -t demo-app .
+
+  docker compose : docker compose up --build -d
+
+
+command: >
+      bash -c "
+        /etc/confluent/docker/run &
+        sleep 5 &&
+        kafka-topics --create --topic transactions --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 &&
+        tail -f /dev/null
+      "

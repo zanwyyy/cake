@@ -30,71 +30,42 @@ spec:
           ports:
             - containerPort: 9092
           env:
-            # Kafka Broker Configuration
             - name: KAFKA_BROKER_ID
               value: "1"
             - name: KAFKA_ZOOKEEPER_CONNECT
               value: "zookeeper:2181"
-            
-            # Listener Configuration
             - name: KAFKA_LISTENERS
               value: "PLAINTEXT://0.0.0.0:9092"
             - name: KAFKA_ADVERTISED_LISTENERS
               value: "PLAINTEXT://kafka:9092"
-            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "PLAINTEXT:PLAINTEXT"
-            - name: KAFKA_INTER_BROKER_LISTENER_NAME
-              value: "PLAINTEXT"
-            
-            # Topic and Replication Configuration
-            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
-              value: "1"
-            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
-              value: "1"
-            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
-              value: "1"
-            - name: KAFKA_DEFAULT_REPLICATION_FACTOR
-              value: "1"
-            - name: KAFKA_MIN_INSYNC_REPLICAS
-              value: "1"
-            
-            
-            # Other Important Settings
-            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
-              value: "true"
-            - name: KAFKA_DELETE_TOPIC_ENABLE
-              value: "true"
-            - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
-              value: "0"
-            
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-          
-          # Health checks
-          livenessProbe:
-            tcpSocket:
-              port: 9092
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          
-          readinessProbe:
-            tcpSocket:
-              port: 9092
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
-          
+            - name: ALLOW_PLAINTEXT_LISTENER
+              value: "yes"
           volumeMounts:
             - name: kafka-data
-              mountPath: /var/lib/kafka/data
+              mountPath: /bitnami/kafka
       volumes:
         - name: kafka-data
           emptyDir: {}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-create-topic
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-topic
+          image: bitnami/kafka:3.6
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Kafka to be ready..."
+              sleep 10
+              /opt/bitnami/kafka/bin/kafka-topics.sh --create \
+                --topic transactions \
+                --bootstrap-server kafka:9092 \
+                --replication-factor 1 \
+                --partitions 1 || true

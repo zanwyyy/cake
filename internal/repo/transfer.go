@@ -61,7 +61,7 @@ func (r *PostgresTransferRepo) ListTransactions(ctx context.Context, from string
 	}
 	return txs, nil
 }
-func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to string, amount int64) error {
+func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to string, amount int64) (err error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -69,24 +69,34 @@ func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to s
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(p)
 		} else if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 		}
 	}()
 
-	var balance int64
+	var fromBalance int64
 	err = tx.QueryRowContext(ctx,
 		`SELECT balance FROM users WHERE id = $1 FOR UPDATE`,
 		from,
-	).Scan(&balance)
+	).Scan(&fromBalance)
 	if err != nil {
 		return err
 	}
-	fmt.Println(balance)
-	if balance < amount {
+
+	if fromBalance < amount {
 		return fmt.Errorf("insufficient balance")
+	}
+
+	// Lock luôn người nhận để tránh race
+	var toBalance int64
+	err = tx.QueryRowContext(ctx,
+		`SELECT balance FROM users WHERE id = $1 FOR UPDATE`,
+		to,
+	).Scan(&toBalance)
+	if err != nil {
+		return err
 	}
 
 	_, err = tx.ExecContext(ctx,
@@ -113,10 +123,16 @@ func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to s
 		return err
 	}
 
-	err = tx.Commit()
+	// Commit transaction
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	// Publish sau commit (chấp nhận không atomic với DB)
 	msg := fmt.Sprintf("Transaction from %s to %s with amount %d success", from, to, amount)
 	if err = r.kafka.Publish(ctx, from, msg); err != nil {
 		log.Printf("failed to publish: %v", err)
 	}
+
 	return err
 }

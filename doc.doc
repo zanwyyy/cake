@@ -19,3 +19,23 @@ command: >
         kafka-topics --create --topic transactions --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 &&
         tail -f /dev/null
       "
+
+
+kubectl cp init.sql <pod-db>:/init.sql
+kubectl exec -it <pod-db>   -- \ 
+  psql -U demo_user -d demo_db -f /init.sql
+
+kubectl exec -it <pod-kafka> -- \
+  kafka-topics --create \
+    --topic transactions \
+    --bootstrap-server kafka:9092 \
+    --replication-factor 1 \
+    --partitions 1
+
+
+minikube service app-server --url
+minikube service app-server
+
+
+docker exec -it demo-postgres bash
+psql -U demo_user -d demo_db

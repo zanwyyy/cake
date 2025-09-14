@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Dữ liệu mẫu cho users
 INSERT INTO users (name, balance) VALUES
 ('Alice', 1000),
-('Bob', 500),
-('Charlie', 200);
+('Bob', 5000),
+('Charlie', 2000);
 
 -- Dữ liệu mẫu cho transactions
 INSERT INTO transactions (from_user, to_user, amount) VALUES

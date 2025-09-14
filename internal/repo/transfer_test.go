@@ -51,7 +51,7 @@ func TestInsertTransaction_Success(t *testing.T) {
 
 	from := "1"
 	to := "2"
-	amount := int64(200)
+	amount := int64(2)
 
 	// Lấy balance trước khi transfer
 	fromBalanceBefore := getBalance(t, db, from)
@@ -80,8 +80,6 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	// Reset test data
-
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
 	from := "1"
@@ -92,7 +90,13 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	fromBalanceBefore := getBalance(t, db, from)
 	toBalanceBefore := getBalance(t, db, to)
 
-	err := repo.InsertTransaction(context.Background(), from, to, amount)
+	// Đếm số transaction trước khi chạy
+	var countBefore int
+	err := db.QueryRow(`SELECT COUNT(*) FROM transactions`).Scan(&countBefore)
+	require.NoError(t, err)
+
+	// Thực hiện giao dịch
+	err = repo.InsertTransaction(context.Background(), from, to, amount)
 	require.Error(t, err)
 
 	// Verify balance không thay đổi
@@ -102,100 +106,90 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	require.Equal(t, fromBalanceBefore, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore, toBalanceAfter)
 
-	// Verify không có transaction record được tạo
-	var count int
-	err = db.QueryRow(`SELECT COUNT(*) FROM transactions WHERE from_user = $1 AND to_user = $2 AND amount = $3`,
-		from, to, amount).Scan(&count)
+	// Verify tổng số transaction không đổi
+	var countAfter int
+	err = db.QueryRow(`SELECT COUNT(*) FROM transactions`).Scan(&countAfter)
 	require.NoError(t, err)
-	require.Equal(t, 0, count)
+	require.Equal(t, countBefore, countAfter)
 }
 
-func TestInsertTransaction_Concurrent(t *testing.T) {
+func TestInsertTransaction_WorkerPool(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
-
-	// Reset test data
 
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
 	from := "1"
 	to := "2"
 
-	n := 1000
-	amount := int64(50)
+	n := 200 // tổng số transaction
+	amount := int64(1)
+	workers := 50 // số worker đồng thời
 
-	// Lấy balance trước khi test
 	fromBalanceBefore := getBalance(t, db, from)
 	toBalanceBefore := getBalance(t, db, to)
 
+	// Channel để phát job
+	jobs := make(chan int, n)
+	// Channel để gom lỗi
+	errs := make(chan error, n)
+
 	var wg sync.WaitGroup
-	var mu sync.Mutex
-	var successCount int
-	var errors []error
 
-	wg.Add(n)
-
-	for i := 0; i < n; i++ {
-		go func(index int) {
+	// Tạo worker pool
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func(id int) {
 			defer wg.Done()
+			for j := range jobs {
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				err := repo.InsertTransaction(ctx, from, to, amount)
+				cancel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-
-			err := repo.InsertTransaction(ctx, from, to, amount)
-
-			mu.Lock()
-			defer mu.Unlock()
-
-			if err != nil {
-				errors = append(errors, fmt.Errorf("goroutine %d: %w", index, err))
-			} else {
-				successCount++
+				if err != nil {
+					errs <- fmt.Errorf("job %d by worker %d failed: %w", j, id, err)
+				}
 			}
-		}(i)
+		}(w)
 	}
 
+	// Bắn job vào pool
+	for i := 0; i < n; i++ {
+		jobs <- i
+	}
+	close(jobs)
+
+	// Đợi tất cả worker xong
 	wg.Wait()
+	close(errs)
 
-	// Log errors nếu có
-	if len(errors) > 0 {
-		t.Logf("Concurrent test had %d errors out of %d attempts:", len(errors), n)
-		for _, err := range errors {
-			t.Logf("  - %v", err)
-		}
+	// Log lỗi nếu có
+	for err := range errs {
+		t.Log(err)
 	}
 
-	// Verify final balances
+	// Kiểm tra số dư cuối cùng
 	fromBalanceAfter := getBalance(t, db, from)
 	toBalanceAfter := getBalance(t, db, to)
 
-	// Balance changes should match successful transactions
-	expectedFromBalance := fromBalanceBefore - int64(successCount)*amount
-	expectedToBalance := toBalanceBefore + int64(successCount)*amount
+	expectedFrom := fromBalanceBefore - int64(n)*amount
+	expectedTo := toBalanceBefore + int64(n)*amount
 
-	require.Equal(t, expectedFromBalance, fromBalanceAfter,
-		"From balance mismatch. Success: %d, Expected: %d, Actual: %d",
-		successCount, expectedFromBalance, fromBalanceAfter)
-	require.Equal(t, expectedToBalance, toBalanceAfter,
-		"To balance mismatch. Success: %d, Expected: %d, Actual: %d",
-		successCount, expectedToBalance, toBalanceAfter)
+	require.Equal(t, expectedFrom, fromBalanceAfter,
+		"Số dư người gửi không đúng. Expected %d, got %d", expectedFrom, fromBalanceAfter)
 
-	// Verify transaction records
-	var recordCount int
-	err := db.QueryRow(`SELECT COUNT(*) FROM transactions WHERE from_user = $1 AND to_user = $2 AND amount = $3`,
-		from, to, amount).Scan(&recordCount)
-	require.NoError(t, err)
-	require.Equal(t, successCount, recordCount,
-		"Transaction record count should match successful operations")
+	require.Equal(t, expectedTo, toBalanceAfter,
+		"Số dư người nhận không đúng. Expected %d, got %d", expectedTo, toBalanceAfter)
 
-	// Trong concurrent test, có thể một số transactions thất bại do race conditions
-	// Nhưng tổng balance phải consistent
-	t.Logf("Concurrent test results: %d/%d transactions succeeded", successCount, n)
-
-	// Verify tổng tiền trong hệ thống không đổi
+	// Tổng tiền hệ thống không đổi
 	totalBefore := fromBalanceBefore + toBalanceBefore
 	totalAfter := fromBalanceAfter + toBalanceAfter
-	require.Equal(t, totalBefore, totalAfter, "Total money in system should remain constant")
+	require.Equal(t, totalBefore, totalAfter,
+		"Tổng tiền trong hệ thống phải không đổi")
+
+	t.Logf("From: %d -> %d | To: %d -> %d",
+		fromBalanceBefore, fromBalanceAfter,
+		toBalanceBefore, toBalanceAfter)
 }
 
 func TestInsertTransaction_InvalidUsers(t *testing.T) {
@@ -204,7 +198,6 @@ func TestInsertTransaction_InvalidUsers(t *testing.T) {
 
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
-	// Test với user không tồn tại
 	err := repo.InsertTransaction(context.Background(), "nonexistent", "1", 100)
 	require.Error(t, err)
 

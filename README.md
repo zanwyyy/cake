@@ -172,8 +172,8 @@ curl --location 'http://127.0.0.1:<PORT>/v1/transfer/1/transactions'
   },
   {
     "id": 2,
-    "from_user": "2",
-    "to_user": "1",
+    "from_user": "1",
+    "to_user": "3",
     "amount": 100
   }
 }

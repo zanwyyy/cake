@@ -20,7 +20,7 @@ type GRPCServer struct {
 	Addr string
 }
 
-func NewGRPCServer(svc *service.TransferService, config *config.Config) *GRPCServer {
+func NewGRPCServer(svc service.TransferService, config *config.Config) *GRPCServer {
 	s := grpc.NewServer()
 	pb.RegisterTransferServiceServer(s, grpcapi.NewTransferService(svc))
 	return &GRPCServer{

@@ -8,10 +8,10 @@ import (
 
 type TransferService struct {
 	pb.UnimplementedTransferServiceServer
-	svc *service.TransferService
+	svc service.TransferService
 }
 
-func NewTransferService(svc *service.TransferService) *TransferService {
+func NewTransferService(svc service.TransferService) *TransferService {
 	return &TransferService{svc: svc}
 }
 

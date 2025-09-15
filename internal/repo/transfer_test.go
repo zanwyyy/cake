@@ -26,7 +26,6 @@ func setupTestDB(t *testing.T) *sql.DB {
 	db, err := sql.Open("postgres", connStr)
 	require.NoError(t, err)
 
-	// Test connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err = db.PingContext(ctx)
@@ -35,7 +34,6 @@ func setupTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-// Helper function để lấy balance
 func getBalance(t *testing.T, db *sql.DB, userID string) int64 {
 	var balance int64
 	err := db.QueryRow(`SELECT balance FROM users WHERE id = $1`, userID).Scan(&balance)
@@ -53,21 +51,17 @@ func TestInsertTransaction_Success(t *testing.T) {
 	to := "2"
 	amount := int64(2)
 
-	// Lấy balance trước khi transfer
 	fromBalanceBefore := getBalance(t, db, from)
 	toBalanceBefore := getBalance(t, db, to)
 	t.Logf("Before transfer: from=%d, to=%d", fromBalanceBefore, toBalanceBefore)
 
-	// Thực hiện giao dịch
 	err := repo.InsertTransaction(context.Background(), from, to, amount)
 	require.NoError(t, err)
 
-	// Lấy balance sau khi transfer
 	fromBalanceAfter := getBalance(t, db, from)
 	toBalanceAfter := getBalance(t, db, to)
 	t.Logf("After transfer: from=%d, to=%d", fromBalanceAfter, toBalanceAfter)
 
-	// Kiểm tra số dư thay đổi chính xác
 	require.Equal(t, fromBalanceBefore-amount, fromBalanceAfter,
 		"From balance mismatch: expected %d, got %d",
 		fromBalanceBefore-amount, fromBalanceAfter)
@@ -84,59 +78,50 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 
 	from := "1"
 	to := "2"
-	amount := int64(2000000) // Lớn hơn balance
+	amount := int64(2000000)
 
-	// Lấy balance trước khi transfer
 	fromBalanceBefore := getBalance(t, db, from)
 	toBalanceBefore := getBalance(t, db, to)
 
-	// Đếm số transaction trước khi chạy
 	var countBefore int
 	err := db.QueryRow(`SELECT COUNT(*) FROM transactions`).Scan(&countBefore)
 	require.NoError(t, err)
 
-	// Thực hiện giao dịch
 	err = repo.InsertTransaction(context.Background(), from, to, amount)
 	require.Error(t, err)
 
-	// Verify balance không thay đổi
 	fromBalanceAfter := getBalance(t, db, from)
 	toBalanceAfter := getBalance(t, db, to)
 
 	require.Equal(t, fromBalanceBefore, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore, toBalanceAfter)
 
-	// Verify tổng số transaction không đổi
 	var countAfter int
 	err = db.QueryRow(`SELECT COUNT(*) FROM transactions`).Scan(&countAfter)
 	require.NoError(t, err)
 	require.Equal(t, countBefore, countAfter)
 }
 
-func TestInsertTransaction_WorkerPool(t *testing.T) {
+func TestInsertTransaction_Concurrent(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
-	from := "1"
-	to := "2"
+	from := "2"
+	to := "1"
 
-	n := 200 // tổng số transaction
+	n := 500
 	amount := int64(1)
-	workers := 50 // số worker đồng thời
-
+	workers := 50
 	fromBalanceBefore := getBalance(t, db, from)
 	toBalanceBefore := getBalance(t, db, to)
 
-	// Channel để phát job
 	jobs := make(chan int, n)
-	// Channel để gom lỗi
 	errs := make(chan error, n)
 
 	var wg sync.WaitGroup
 
-	// Tạo worker pool
 	for w := 0; w < workers; w++ {
 		wg.Add(1)
 		go func(id int) {
@@ -153,22 +138,18 @@ func TestInsertTransaction_WorkerPool(t *testing.T) {
 		}(w)
 	}
 
-	// Bắn job vào pool
 	for i := 0; i < n; i++ {
 		jobs <- i
 	}
 	close(jobs)
 
-	// Đợi tất cả worker xong
 	wg.Wait()
 	close(errs)
 
-	// Log lỗi nếu có
 	for err := range errs {
 		t.Log(err)
 	}
 
-	// Kiểm tra số dư cuối cùng
 	fromBalanceAfter := getBalance(t, db, from)
 	toBalanceAfter := getBalance(t, db, to)
 
@@ -181,7 +162,6 @@ func TestInsertTransaction_WorkerPool(t *testing.T) {
 	require.Equal(t, expectedTo, toBalanceAfter,
 		"Số dư người nhận không đúng. Expected %d, got %d", expectedTo, toBalanceAfter)
 
-	// Tổng tiền hệ thống không đổi
 	totalBefore := fromBalanceBefore + toBalanceBefore
 	totalAfter := fromBalanceAfter + toBalanceAfter
 	require.Equal(t, totalBefore, totalAfter,

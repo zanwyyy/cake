@@ -36,14 +36,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    command: >
-          bash -c "
-            /etc/confluent/docker/run &
-            sleep 5 &&
-            kafka-topics --create --topic transactions --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 &&
-            tail -f /dev/null
-          "
-
+   
   
   kafdrop:
     image: obsidiandynamics/kafdrop:latest

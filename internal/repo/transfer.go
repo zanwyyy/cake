@@ -89,7 +89,6 @@ func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to s
 		return fmt.Errorf("insufficient balance")
 	}
 
-	// Lock luôn người nhận để tránh race
 	var toBalance int64
 	err = tx.QueryRowContext(ctx,
 		`SELECT balance FROM users WHERE id = $1 FOR UPDATE`,
@@ -128,7 +127,6 @@ func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to s
 		return err
 	}
 
-	// Publish sau commit (chấp nhận không atomic với DB)
 	msg := fmt.Sprintf("Transaction from %s to %s with amount %d success", from, to, amount)
 	if err = r.kafka.Publish(ctx, from, msg); err != nil {
 		log.Printf("failed to publish: %v", err)

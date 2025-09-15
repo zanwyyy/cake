@@ -6,15 +6,20 @@ import (
 	pb "project/pkg/pb"
 )
 
-type TransferService struct {
+type TransferService interface {
+	ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error)
+	InsertTransaction(ctx context.Context, from, to string, amount int64) (*pb.SendMoneyResponse, error)
+}
+
+type transferService struct {
 	repo repo.TransferRepository
 }
 
-func NewTransferService(r repo.TransferRepository) *TransferService {
-	return &TransferService{repo: r}
+func NewTransferService(r repo.TransferRepository) TransferService {
+	return &transferService{repo: r}
 }
 
-func (s *TransferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
+func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
 	txs, err := s.repo.ListTransactions(ctx, req.UserId)
 	if err != nil {
 		return nil, err
@@ -33,7 +38,7 @@ func (s *TransferService) ListTransactions(ctx context.Context, req *pb.ListTran
 	return resp, nil
 }
 
-func (s *TransferService) InsertTransaction(ctx context.Context, from, to string, amount int64) (*pb.SendMoneyResponse, error) {
+func (s *transferService) InsertTransaction(ctx context.Context, from, to string, amount int64) (*pb.SendMoneyResponse, error) {
 	err := s.repo.InsertTransaction(ctx, from, to, amount)
 	if err != nil {
 		return &pb.SendMoneyResponse{

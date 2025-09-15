@@ -83,16 +83,14 @@ func (p *PubSub) Subscribe(ctx context.Context) error {
 	log.Println("Starting PubSub consumer...")
 
 	for {
-		// mỗi request có timeout riêng, không ảnh hưởng vòng lặp
 		reqCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		resp, err := p.subClient.Pull(reqCtx, &pubsubpb.PullRequest{
 			Subscription: subPath,
 			MaxMessages:  2,
 		})
-		cancel() // tránh leak context
+		cancel()
 
 		if err != nil {
-			//	log.Printf("[PubSub v2] Pull error: %v", err)
 			time.Sleep(2 * time.Second)
 			continue
 		}

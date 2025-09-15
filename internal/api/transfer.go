@@ -22,3 +22,7 @@ func (s *TransferService) SendMoney(ctx context.Context, req *pb.SendMoneyReques
 func (s *TransferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
 	return s.svc.ListTransactions(ctx, req)
 }
+
+func (s *TransferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
+	return s.svc.GetBalance(ctx, req)
+}

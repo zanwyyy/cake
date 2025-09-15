@@ -19,9 +19,14 @@ service TransferService {
       get: "/v1/transfer/{user_id}/transactions"
     };
   }
+
+   rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse) {
+    option (google.api.http) = {
+      get: "/v1/transfer/{user_id}/balance"
+    };
+  }
 }
 
-// Request/Response messages
 
 message SendMoneyRequest {
   string from = 1;
@@ -39,7 +44,7 @@ message ListTransactionsRequest {
 }
 
 message Transaction {
-  int id = 1;
+  string id = 1;
   string from = 2;
   string to = 3;
   int64 amount = 4;
@@ -48,4 +53,14 @@ message Transaction {
 message ListTransactionsResponse {
   int64 number = 1;                  // Tổng số giao dịch
   repeated Transaction transactions = 2; // Danh sách giao dịch
+}
+
+
+message GetBalanceRequest {
+  string user_id = 1;
+}
+
+message GetBalanceResponse {
+  string user_id = 1;
+  int64 balance = 2;
 }

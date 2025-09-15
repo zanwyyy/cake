@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	TransferService_SendMoney_FullMethodName        = "/transfer.v1.TransferService/SendMoney"
 	TransferService_ListTransactions_FullMethodName = "/transfer.v1.TransferService/ListTransactions"
+	TransferService_GetBalance_FullMethodName       = "/transfer.v1.TransferService/GetBalance"
 )
 
 // TransferServiceClient is the client API for TransferService service.
@@ -29,6 +30,7 @@ const (
 type TransferServiceClient interface {
 	SendMoney(ctx context.Context, in *SendMoneyRequest, opts ...grpc.CallOption) (*SendMoneyResponse, error)
 	ListTransactions(ctx context.Context, in *ListTransactionsRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
+	GetBalance(ctx context.Context, in *GetBalanceRequest, opts ...grpc.CallOption) (*GetBalanceResponse, error)
 }
 
 type transferServiceClient struct {
@@ -59,12 +61,23 @@ func (c *transferServiceClient) ListTransactions(ctx context.Context, in *ListTr
 	return out, nil
 }
 
+func (c *transferServiceClient) GetBalance(ctx context.Context, in *GetBalanceRequest, opts ...grpc.CallOption) (*GetBalanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBalanceResponse)
+	err := c.cc.Invoke(ctx, TransferService_GetBalance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransferServiceServer is the server API for TransferService service.
 // All implementations must embed UnimplementedTransferServiceServer
 // for forward compatibility.
 type TransferServiceServer interface {
 	SendMoney(context.Context, *SendMoneyRequest) (*SendMoneyResponse, error)
 	ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error)
+	GetBalance(context.Context, *GetBalanceRequest) (*GetBalanceResponse, error)
 	mustEmbedUnimplementedTransferServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedTransferServiceServer) SendMoney(context.Context, *SendMoneyR
 }
 func (UnimplementedTransferServiceServer) ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTransactions not implemented")
+}
+func (UnimplementedTransferServiceServer) GetBalance(context.Context, *GetBalanceRequest) (*GetBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBalance not implemented")
 }
 func (UnimplementedTransferServiceServer) mustEmbedUnimplementedTransferServiceServer() {}
 func (UnimplementedTransferServiceServer) testEmbeddedByValue()                         {}
@@ -138,6 +154,24 @@ func _TransferService_ListTransactions_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransferService_GetBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransferServiceServer).GetBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransferService_GetBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransferServiceServer).GetBalance(ctx, req.(*GetBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransferService_ServiceDesc is the grpc.ServiceDesc for TransferService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var TransferService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTransactions",
 			Handler:    _TransferService_ListTransactions_Handler,
+		},
+		{
+			MethodName: "GetBalance",
+			Handler:    _TransferService_GetBalance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -298,6 +298,102 @@ func (x *ListTransactionsResponse) GetTransactions() []*Transaction {
 	return nil
 }
 
+type GetBalanceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBalanceRequest) Reset() {
+	*x = GetBalanceRequest{}
+	mi := &file_transfer_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBalanceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBalanceRequest) ProtoMessage() {}
+
+func (x *GetBalanceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_transfer_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBalanceRequest.ProtoReflect.Descriptor instead.
+func (*GetBalanceRequest) Descriptor() ([]byte, []int) {
+	return file_transfer_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetBalanceRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type GetBalanceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Balance       int64                  `protobuf:"varint,2,opt,name=balance,proto3" json:"balance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBalanceResponse) Reset() {
+	*x = GetBalanceResponse{}
+	mi := &file_transfer_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBalanceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBalanceResponse) ProtoMessage() {}
+
+func (x *GetBalanceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_transfer_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBalanceResponse.ProtoReflect.Descriptor instead.
+func (*GetBalanceResponse) Descriptor() ([]byte, []int) {
+	return file_transfer_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetBalanceResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *GetBalanceResponse) GetBalance() int64 {
+	if x != nil {
+		return x.Balance
+	}
+	return 0
+}
+
 var File_transfer_proto protoreflect.FileDescriptor
 
 const file_transfer_proto_rawDesc = "" +
@@ -319,10 +415,17 @@ const file_transfer_proto_rawDesc = "" +
 	"\x06amount\x18\x04 \x01(\x03R\x06amount\"p\n" +
 	"\x18ListTransactionsResponse\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\x03R\x06number\x12<\n" +
-	"\ftransactions\x18\x02 \x03(\v2\x18.transfer.v1.TransactionR\ftransactions2\x8a\x02\n" +
+	"\ftransactions\x18\x02 \x03(\v2\x18.transfer.v1.TransactionR\ftransactions\",\n" +
+	"\x11GetBalanceRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"G\n" +
+	"\x12GetBalanceResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
+	"\abalance\x18\x02 \x01(\x03R\abalance2\x81\x03\n" +
 	"\x0fTransferService\x12h\n" +
 	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x8c\x01\n" +
-	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/transfer/{user_id}/transactionsB\x13Z\x11project/pkg/pb;pbb\x06proto3"
+	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/transfer/{user_id}/transactions\x12u\n" +
+	"\n" +
+	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/transfer/{user_id}/balanceB\x13Z\x11project/pkg/pb;pbb\x06proto3"
 
 var (
 	file_transfer_proto_rawDescOnce sync.Once
@@ -336,22 +439,26 @@ func file_transfer_proto_rawDescGZIP() []byte {
 	return file_transfer_proto_rawDescData
 }
 
-var file_transfer_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_transfer_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_transfer_proto_goTypes = []any{
 	(*SendMoneyRequest)(nil),         // 0: transfer.v1.SendMoneyRequest
 	(*SendMoneyResponse)(nil),        // 1: transfer.v1.SendMoneyResponse
 	(*ListTransactionsRequest)(nil),  // 2: transfer.v1.ListTransactionsRequest
 	(*Transaction)(nil),              // 3: transfer.v1.Transaction
 	(*ListTransactionsResponse)(nil), // 4: transfer.v1.ListTransactionsResponse
+	(*GetBalanceRequest)(nil),        // 5: transfer.v1.GetBalanceRequest
+	(*GetBalanceResponse)(nil),       // 6: transfer.v1.GetBalanceResponse
 }
 var file_transfer_proto_depIdxs = []int32{
 	3, // 0: transfer.v1.ListTransactionsResponse.transactions:type_name -> transfer.v1.Transaction
 	0, // 1: transfer.v1.TransferService.SendMoney:input_type -> transfer.v1.SendMoneyRequest
 	2, // 2: transfer.v1.TransferService.ListTransactions:input_type -> transfer.v1.ListTransactionsRequest
-	1, // 3: transfer.v1.TransferService.SendMoney:output_type -> transfer.v1.SendMoneyResponse
-	4, // 4: transfer.v1.TransferService.ListTransactions:output_type -> transfer.v1.ListTransactionsResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
+	5, // 3: transfer.v1.TransferService.GetBalance:input_type -> transfer.v1.GetBalanceRequest
+	1, // 4: transfer.v1.TransferService.SendMoney:output_type -> transfer.v1.SendMoneyResponse
+	4, // 5: transfer.v1.TransferService.ListTransactions:output_type -> transfer.v1.ListTransactionsResponse
+	6, // 6: transfer.v1.TransferService.GetBalance:output_type -> transfer.v1.GetBalanceResponse
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -368,7 +475,7 @@ func file_transfer_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_transfer_proto_rawDesc), len(file_transfer_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

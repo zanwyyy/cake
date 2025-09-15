@@ -14,6 +14,7 @@ import (
 type TransferRepository interface {
 	InsertTransaction(ctx context.Context, from, to string, amount int64) error
 	ListTransactions(ctx context.Context, from string) ([]model.Transaction, error)
+	GetBalance(ctx context.Context, userID string) (int64, error)
 }
 
 type PostgresTransferRepo struct {
@@ -133,4 +134,19 @@ func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to s
 	}
 
 	return err
+}
+
+func (r *PostgresTransferRepo) GetBalance(ctx context.Context, userID string) (int64, error) {
+	var balance int64
+	err := r.db.QueryRowContext(ctx,
+		`SELECT balance FROM users WHERE id = $1`,
+		userID,
+	).Scan(&balance)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("user with id %s not found", userID)
+		}
+		return 0, err
+	}
+	return balance, nil
 }

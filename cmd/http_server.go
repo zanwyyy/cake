@@ -50,6 +50,7 @@ func RegisterHTTPLifecycle(lc fx.Lifecycle, gw *HTTPGateway) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			// Ở đây có thể graceful shutdown nếu cần
 			return nil
 		},
 	})

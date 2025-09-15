@@ -9,6 +9,7 @@ import (
 type TransferService interface {
 	ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error)
 	InsertTransaction(ctx context.Context, from, to string, amount int64) (*pb.SendMoneyResponse, error)
+	GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error)
 }
 
 type transferService struct {
@@ -49,5 +50,17 @@ func (s *transferService) InsertTransaction(ctx context.Context, from, to string
 	return &pb.SendMoneyResponse{
 		Success:      true,
 		ErrorMessage: "",
+	}, nil
+}
+
+func (s *transferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
+	balance, err := s.repo.GetBalance(ctx, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetBalanceResponse{
+		UserId:  req.UserId,
+		Balance: balance,
 	}, nil
 }

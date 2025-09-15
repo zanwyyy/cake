@@ -39,18 +39,17 @@ func RegisterHTTPLifecycle(lc fx.Lifecycle, gw *HTTPGateway) {
 				if err := pb.RegisterTransferServiceHandlerFromEndpoint(
 					gatewayCtx, gw.Mux, gw.GRPCAddr, opts,
 				); err != nil {
-					log.Println("failed to register HTTP gateway: %v", err)
+					log.Println(err)
 				}
 
 				log.Printf("HTTP Gateway listening on %s (proxy to %s)", gw.HTTPAddr, gw.GRPCAddr)
 				if err := http.ListenAndServe(gw.HTTPAddr, gw.Mux); err != nil {
-					log.Println("failed to serve HTTP gateway: %v", err)
+					log.Println(err)
 				}
 			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			// Ở đây có thể graceful shutdown nếu cần
 			return nil
 		},
 	})

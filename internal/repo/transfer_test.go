@@ -34,64 +34,65 @@ func setupTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-func getBalance(t *testing.T, db *sql.DB, userID string) int64 {
-	var balance int64
-	err := db.QueryRow(`SELECT balance FROM users WHERE id = $1`, userID).Scan(&balance)
-	require.NoError(t, err)
-	return balance
-}
-
 func TestInsertTransaction_Success(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
+	ctx := context.Background()
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
 	from := "1"
 	to := "2"
 	amount := int64(2)
 
-	fromBalanceBefore := getBalance(t, db, from)
-	toBalanceBefore := getBalance(t, db, to)
-	t.Logf("Before transfer: from=%d, to=%d", fromBalanceBefore, toBalanceBefore)
-
-	err := repo.InsertTransaction(context.Background(), from, to, amount)
+	fromBalanceBefore, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceBefore, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
 
-	fromBalanceAfter := getBalance(t, db, from)
-	toBalanceAfter := getBalance(t, db, to)
-	t.Logf("After transfer: from=%d, to=%d", fromBalanceAfter, toBalanceAfter)
+	t.Logf("Trước transfer: from=%d, to=%d", fromBalanceBefore, toBalanceBefore)
 
-	require.Equal(t, fromBalanceBefore-amount, fromBalanceAfter,
-		"From balance mismatch: expected %d, got %d",
-		fromBalanceBefore-amount, fromBalanceAfter)
-	require.Equal(t, toBalanceBefore+amount, toBalanceAfter,
-		"To balance mismatch: expected %d, got %d",
-		toBalanceBefore+amount, toBalanceAfter)
+	err = repo.InsertTransaction(ctx, from, to, amount)
+	require.NoError(t, err)
+
+	fromBalanceAfter, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceAfter, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
+
+	t.Logf("Sau transfer: from=%d, to=%d", fromBalanceAfter, toBalanceAfter)
+
+	require.Equal(t, fromBalanceBefore-amount, fromBalanceAfter)
+	require.Equal(t, toBalanceBefore+amount, toBalanceAfter)
 }
 
 func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
+	ctx := context.Background()
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
 	from := "1"
 	to := "2"
 	amount := int64(2000000)
 
-	fromBalanceBefore := getBalance(t, db, from)
-	toBalanceBefore := getBalance(t, db, to)
-
-	var countBefore int
-	err := db.QueryRow(`SELECT COUNT(*) FROM transactions`).Scan(&countBefore)
+	fromBalanceBefore, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceBefore, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
 
-	err = repo.InsertTransaction(context.Background(), from, to, amount)
+	var countBefore int
+	err = db.QueryRow(`SELECT COUNT(*) FROM transactions`).Scan(&countBefore)
+	require.NoError(t, err)
+
+	err = repo.InsertTransaction(ctx, from, to, amount)
 	require.Error(t, err)
 
-	fromBalanceAfter := getBalance(t, db, from)
-	toBalanceAfter := getBalance(t, db, to)
+	fromBalanceAfter, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceAfter, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	require.Equal(t, fromBalanceBefore, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore, toBalanceAfter)
@@ -110,25 +111,27 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 
 	from := "2"
 	to := "1"
-
 	n := 500
 	amount := int64(1)
 	workers := 50
-	fromBalanceBefore := getBalance(t, db, from)
-	toBalanceBefore := getBalance(t, db, to)
+
+	ctx := context.Background()
+	fromBalanceBefore, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceBefore, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	jobs := make(chan int, n)
 	errs := make(chan error, n)
 
 	var wg sync.WaitGroup
-
 	for w := 0; w < workers; w++ {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
 			for j := range jobs {
-				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				err := repo.InsertTransaction(ctx, from, to, amount)
+				jobCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				err := repo.InsertTransaction(jobCtx, from, to, amount)
 				cancel()
 
 				if err != nil {
@@ -150,22 +153,20 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 		t.Log(err)
 	}
 
-	fromBalanceAfter := getBalance(t, db, from)
-	toBalanceAfter := getBalance(t, db, to)
+	fromBalanceAfter, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceAfter, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	expectedFrom := fromBalanceBefore - int64(n)*amount
 	expectedTo := toBalanceBefore + int64(n)*amount
 
-	require.Equal(t, expectedFrom, fromBalanceAfter,
-		"Số dư người gửi không đúng. Expected %d, got %d", expectedFrom, fromBalanceAfter)
-
-	require.Equal(t, expectedTo, toBalanceAfter,
-		"Số dư người nhận không đúng. Expected %d, got %d", expectedTo, toBalanceAfter)
+	require.Equal(t, expectedFrom, fromBalanceAfter, "Số dư người gửi không đúng")
+	require.Equal(t, expectedTo, toBalanceAfter, "Số dư người nhận không đúng")
 
 	totalBefore := fromBalanceBefore + toBalanceBefore
 	totalAfter := fromBalanceAfter + toBalanceAfter
-	require.Equal(t, totalBefore, totalAfter,
-		"Tổng tiền trong hệ thống phải không đổi")
+	require.Equal(t, totalBefore, totalAfter, "Tổng tiền trong hệ thống phải không đổi")
 
 	t.Logf("From: %d -> %d | To: %d -> %d",
 		fromBalanceBefore, fromBalanceAfter,
@@ -176,11 +177,12 @@ func TestInsertTransaction_InvalidUsers(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
+	ctx := context.Background()
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
-	err := repo.InsertTransaction(context.Background(), "nonexistent", "1", 100)
+	err := repo.InsertTransaction(ctx, "nonexistent", "1", 100)
 	require.Error(t, err)
 
-	err = repo.InsertTransaction(context.Background(), "1", "nonexistent", 100)
+	err = repo.InsertTransaction(ctx, "1", "nonexistent", 100)
 	require.Error(t, err)
 }

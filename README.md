@@ -132,14 +132,15 @@ minikube service app-server --url
 Start the emulator manually if not running via Docker:
 
 ```bash
-gcloud beta emulators pubsub start --project=demo-project    
  gcloud beta emulators pubsub env-init
  export PUBSUB_EMULATOR_HOST=localhost:8085
 export PUBSUB_PROJECT_ID=demo-project
+gcloud beta emulators pubsub start --project=demo-project    
+
 // clone the python repo in ref, cd to samples, snippests
 pip install -r requirements.txt
- python publisher.py PUBSUB_PROJECT_ID create TOPIC_ID (create topic)
- python subscriber.py PUBSUB_PROJECT_ID create TOPIC_ID SUBSCRIPTION_ID (create pull sub)
+ python3 publisher.py demo-project create transactions (create topic)
+ python3 subscriber.py demo-project create transactions sub-transactions (create pull sub)
 ```
 
 

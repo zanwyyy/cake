@@ -44,7 +44,7 @@ message ListTransactionsRequest {
 }
 
 message Transaction {
-  string id = 1;
+  int64 id = 1;
   string from = 2;
   string to = 3;
   int64 amount = 4;

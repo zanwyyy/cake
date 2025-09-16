@@ -21,7 +21,7 @@ func NewServeCommand() *cobra.Command {
 					repo.NewPostgresDB,
 					repo.NewPostgresTransferRepo,
 					service.NewTransferService,
-					repo.NewKafkaWriter,
+					repo.NewPubSubClient,
 					config.LoadConfig,
 				),
 				fx.Invoke(

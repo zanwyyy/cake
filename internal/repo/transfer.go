@@ -2,13 +2,15 @@ package repo
 
 import (
 	"context"
-	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"project/config"
 	"project/internal/model"
 
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type TransferRepository interface {
@@ -17,136 +19,103 @@ type TransferRepository interface {
 	GetBalance(ctx context.Context, userID string) (int64, error)
 }
 
-type PostgresTransferRepo struct {
-	db    *sql.DB
-	kafka Kafka
+type GormTransferRepo struct {
+	db     *gorm.DB
+	pubsub PubSubInterface
 }
 
-func NewPostgresDB(config *config.Config) (*sql.DB, error) {
-	dsn := config.Database.URL
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	fmt.Println(db.Ping())
-	return db, db.Ping()
-}
-
-func NewPostgresTransferRepo(db *sql.DB, kakfa Kafka) TransferRepository {
-	return &PostgresTransferRepo{
-		db:    db,
-		kafka: kakfa,
-	}
-}
-
-func (r *PostgresTransferRepo) ListTransactions(ctx context.Context, from string) ([]model.Transaction, error) {
-	rows, err := r.db.QueryContext(ctx,
-		`SELECT id, from_user, to_user, amount
-         FROM transactions
-         WHERE from_user = $1
-         `, from,
-	)
+func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(cfg.Database.URL), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
+	if err := db.AutoMigrate(&model.User{}, &model.Transaction{}); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func NewPostgresTransferRepo(db *gorm.DB, pubsub *PubSub) TransferRepository {
+	return &GormTransferRepo{
+		db:     db,
+		pubsub: pubsub,
+	}
+}
+
+func (r *GormTransferRepo) ListTransactions(ctx context.Context, from string) ([]model.Transaction, error) {
 	var txs []model.Transaction
-	for rows.Next() {
-		var tx model.Transaction
-		if err := rows.Scan(&tx.ID, &tx.From, &tx.To, &tx.Amount); err != nil {
-			return nil, err
-		}
-		txs = append(txs, tx)
+	if err := r.db.WithContext(ctx).
+		Where("from_user = ?", from).
+		Find(&txs).Error; err != nil {
+		return nil, err
 	}
 	return txs, nil
 }
-func (r *PostgresTransferRepo) InsertTransaction(ctx context.Context, from, to string, amount int64) (err error) {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
 
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		} else if err != nil {
-			_ = tx.Rollback()
+func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to string, amount int64) error {
+	e := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var fromUser, toUser model.User
+
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&fromUser, "id = ?", from).Error; err != nil {
+			return err
 		}
-	}()
 
-	var fromBalance int64
-	err = tx.QueryRowContext(ctx,
-		`SELECT balance FROM users WHERE id = $1 FOR UPDATE`,
-		from,
-	).Scan(&fromBalance)
-	if err != nil {
-		return err
+		if amount < 0 {
+			return fmt.Errorf("amount can't be negavtive")
+		}
+
+		if fromUser.Balance < amount {
+			return fmt.Errorf("insufficient balance")
+		}
+
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&toUser, "id = ?", to).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&fromUser).
+			Update("balance", fromUser.Balance-amount).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&toUser).
+			Update("balance", toUser.Balance+amount).Error; err != nil {
+			return err
+		}
+
+		newTx := model.Transaction{
+			From:   from,
+			To:     to,
+			Amount: amount,
+		}
+		if err := tx.Create(&newTx).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if e == nil {
+		event := model.TransactionEvent{
+			From:   from,
+			To:     to,
+			Amount: amount,
+			Status: "success",
+		}
+		msg, _ := json.Marshal(event)
+		if err := r.pubsub.Publish(msg); err != nil {
+			log.Printf("failed to publish: %v", err)
+			return err
+		}
 	}
-
-	if fromBalance < amount {
-		return fmt.Errorf("insufficient balance")
-	}
-
-	var toBalance int64
-	err = tx.QueryRowContext(ctx,
-		`SELECT balance FROM users WHERE id = $1 FOR UPDATE`,
-		to,
-	).Scan(&toBalance)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx,
-		`UPDATE users SET balance = balance - $1 WHERE id = $2`,
-		amount, from,
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx,
-		`UPDATE users SET balance = balance + $1 WHERE id = $2`,
-		amount, to,
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx,
-		`INSERT INTO transactions (from_user, to_user, amount) VALUES ($1, $2, $3)`,
-		from, to, amount,
-	)
-	if err != nil {
-		return err
-	}
-
-	// Commit transaction
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	msg := fmt.Sprintf("Transaction from %s to %s with amount %d success", from, to, amount)
-	if err = r.kafka.Publish(ctx, from, msg); err != nil {
-		log.Printf("failed to publish: %v", err)
-	}
-
-	return err
+	return e
 }
 
-func (r *PostgresTransferRepo) GetBalance(ctx context.Context, userID string) (int64, error) {
-	var balance int64
-	err := r.db.QueryRowContext(ctx,
-		`SELECT balance FROM users WHERE id = $1`,
-		userID,
-	).Scan(&balance)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("user with id %s not found", userID)
-		}
+func (r *GormTransferRepo) GetBalance(ctx context.Context, userID string) (int64, error) {
+	var user model.User
+	if err := r.db.WithContext(ctx).First(&user, "id = ?", userID).Error; err != nil {
 		return 0, err
 	}
-	return balance, nil
+	return user.Balance, nil
 }

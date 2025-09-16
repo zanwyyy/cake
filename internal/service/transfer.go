@@ -29,7 +29,7 @@ func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTran
 	resp := &pb.ListTransactionsResponse{}
 	for _, tx := range txs {
 		resp.Transactions = append(resp.Transactions, &pb.Transaction{
-			Id:     tx.ID,
+			Id:     int64(tx.ID),
 			From:   tx.From,
 			To:     tx.To,
 			Amount: tx.Amount,

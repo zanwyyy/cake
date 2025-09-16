@@ -8,7 +8,6 @@ import (
 func main() {
 	cmd.RegisterCommands(
 		cmd.NewServeCommand(),
-		cmd.NewConsumerCommand(),
 		cmd.NewPubSubConsumerCommand(),
 	)
 

@@ -133,8 +133,8 @@ Start the emulator manually if not running via Docker:
 
 ```bash
  gcloud beta emulators pubsub env-init
- export PUBSUB_EMULATOR_HOST=localhost:8085
-export PUBSUB_PROJECT_ID=demo-project
+  export PUBSUB_EMULATOR_HOST=localhost:8085
+  export PUBSUB_PROJECT_ID=demo-project
 gcloud beta emulators pubsub start --project=demo-project    
 
 // clone the python repo in ref, cd to samples, snippests

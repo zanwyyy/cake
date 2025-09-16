@@ -9,7 +9,6 @@ type Config struct {
 	Server   ServerConfig
 	Gateway  GatewayConfig
 	Database DatabaseConfig
-	Kafka    KafkaConfig
 	PubSub   PubSubConfig
 }
 
@@ -26,12 +25,6 @@ type DatabaseConfig struct {
 	URL string
 }
 
-type KafkaConfig struct {
-	Broker  string
-	Topic   string
-	GroupId string
-}
-
 type PubSubConfig struct {
 	ProjectID   string
 	Endpoint    string
@@ -43,10 +36,6 @@ func LoadConfig() *Config {
 	cfg := &Config{
 		Database: DatabaseConfig{
 			URL: getEnv("DATABASE_URL", "postgres://demo_user:demo_pass@localhost:5432/demo_db?sslmode=disable"),
-		},
-		Kafka: KafkaConfig{
-			Broker: getEnv("KAFKA_BROKER", "localhost:9092"),
-			Topic:  getEnv("KAFKA_TOPIC", "transactions"),
 		},
 		PubSub: PubSubConfig{
 			ProjectID:   getEnv("PROJECT_ID", "demo-project"),

@@ -15,13 +15,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type PubSubInterface interface {
+	Subscribe(ctx context.Context) error
+	Publish(data []byte) error
+}
+
 type PubSub struct {
 	pubClient *pubsub.PublisherClient
 	subClient *pubsub.SubscriberClient
 	config    *config.Config
 }
 
-func NewPubSubClient(config *config.Config) (*PubSub, error) {
+func NewPubSubClient(config *config.Config) (PubSubInterface, error) {
 	ctx := context.Background()
 
 	opts := []option.ClientOption{
@@ -71,7 +76,6 @@ func (p *PubSub) Publish(data []byte) error {
 
 		lastErr = err
 		log.Printf("[PubSub v2] Publish attempt %d failed: %v", i+1, err)
-		time.Sleep(time.Duration(i+1) * time.Second) // backoff
 	}
 	return fmt.Errorf("failed to publish after retries: %w", lastErr)
 }
@@ -83,20 +87,16 @@ func (p *PubSub) Subscribe(ctx context.Context) error {
 	log.Println("Starting PubSub consumer...")
 
 	for {
-		reqCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		resp, err := p.subClient.Pull(reqCtx, &pubsubpb.PullRequest{
+		resp, err := p.subClient.Pull(ctx, &pubsubpb.PullRequest{
 			Subscription: subPath,
 			MaxMessages:  2,
 		})
-		cancel()
 
 		if err != nil {
-			time.Sleep(2 * time.Second)
 			continue
 		}
 
 		if resp == nil || len(resp.ReceivedMessages) == 0 {
-			time.Sleep(1 * time.Second)
 			continue
 		}
 

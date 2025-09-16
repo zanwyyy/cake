@@ -23,8 +23,6 @@ spec:
           env:
             - name: DATABASE_URL
               value: postgres://demo_user:demo_pass@postgres:5432/demo_db?sslmode=disable
-            - name: KAFKA_BROKER
-              value: kafka:9092
             - name: GATEWAY_GRPC_ADDR
               value: app-server:9090
 ---

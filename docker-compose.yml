@@ -1,4 +1,4 @@
-version: "3.9"
+version: "4.0"
 
 services:
   postgres:
@@ -12,42 +12,6 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-   
-  
-  kafdrop:
-    image: obsidiandynamics/kafdrop:latest
-    container_name: kafdrop
-    restart: always
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:9092"
-    depends_on:
-      - kafka
   
   app-server:
     build:
@@ -56,25 +20,12 @@ services:
     command: ["./server", "server"]
     depends_on:
       - postgres
-      - kafka
     ports:
       - "8080:8080"
       - "9090:9090"
     environment:
       DATABASE_URL: postgres://demo_user:demo_pass@postgres:5432/demo_db?sslmode=disable
-      KAFKA_BROKER: kafka:9092
       GATEWAY_GRPC_ADDR: app-server:9090
-
-  app-consumer:
-    build:
-      context: .
-      dockerfile: demo-app.dockerfile
-    command: ["./server", "consumer"]
-    depends_on:
-      - kafka
-    environment:
-      KAFKA_BROKER: kafka:9092
-      PROJECT_ID: demo-project
       Pubsub_Endpoint: dns:///host.docker.internal:8085
       Pubsub_Topic: transactions
 

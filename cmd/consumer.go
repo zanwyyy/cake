@@ -27,7 +27,7 @@ func NewPubSubConsumerCommand() *cobra.Command {
 	}
 }
 
-func RegisterPubSubConsumer(lc fx.Lifecycle, ps *repo.PubSub) {
+func RegisterPubSubConsumer(lc fx.Lifecycle, ps repo.PubSubInterface) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			fmt.Println("Starting PubSub consumer...")

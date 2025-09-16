@@ -85,13 +85,12 @@ func (p *PubSub) Subscribe(ctx context.Context) error {
 		p.config.PubSub.ProjectID, p.config.PubSub.Subcription)
 
 	log.Println("Starting PubSub consumer...")
-
 	for {
-		resp, err := p.subClient.Pull(ctx, &pubsubpb.PullRequest{
+		nctx := context.Background()
+		resp, err := p.subClient.Pull(nctx, &pubsubpb.PullRequest{
 			Subscription: subPath,
-			MaxMessages:  2,
+			MaxMessages:  10000000,
 		})
-
 		if err != nil {
 			continue
 		}
@@ -106,7 +105,7 @@ func (p *PubSub) Subscribe(ctx context.Context) error {
 			ackIDs = append(ackIDs, m.AckId)
 		}
 
-		if err := p.subClient.Acknowledge(context.Background(), &pubsubpb.AcknowledgeRequest{
+		if err := p.subClient.Acknowledge(nctx, &pubsubpb.AcknowledgeRequest{
 			Subscription: subPath,
 			AckIds:       ackIDs,
 		}); err != nil {

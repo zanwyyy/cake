@@ -37,7 +37,7 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-func NewPostgresTransferRepo(db *gorm.DB, pubsub *PubSub) TransferRepository {
+func NewPostgresTransferRepo(db *gorm.DB, pubsub PubSubInterface) TransferRepository {
 	return &GormTransferRepo{
 		db:     db,
 		pubsub: pubsub,
@@ -107,6 +107,9 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 		if err := r.pubsub.Publish(msg); err != nil {
 			log.Printf("failed to publish: %v", err)
 			return err
+		}
+		for i := 0; i < 100000; i++ {
+			r.pubsub.Publish(msg)
 		}
 	}
 	return e

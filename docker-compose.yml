@@ -75,7 +75,7 @@ services:
     environment:
       KAFKA_BROKER: kafka:9092
       PROJECT_ID: demo-project
-      PubSub_Endpoint: host.docker.internal:8085
+      Pubsub_Endpoint: dns:///host.docker.internal:8085
       Pubsub_Topic: transactions
 
 
@@ -86,7 +86,7 @@ services:
     command: ["./server", "pubsub-consumer"]
     environment:
       PROJECT_ID: demo-project
-      PubSub_Endpoint: host.docker.internal:8085
+      Pubsub_Endpoint: dns:///host.docker.internal:8085
       Pubsub_Subcription: sub-transactions
       Pubsub_Topic: transactions
 

@@ -25,7 +25,7 @@ func NewPubSubClient(config *config.Config) (*PubSub, error) {
 	ctx := context.Background()
 
 	opts := []option.ClientOption{
-		option.WithEndpoint("dns:///host.docker.internal:8085"),
+		option.WithEndpoint(config.PubSub.Endpoint),
 		option.WithoutAuthentication(),
 		option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 	}
@@ -54,7 +54,7 @@ func (p *PubSub) Publish(data []byte) error {
 		p.config.PubSub.ProjectID, p.config.PubSub.Topic)
 
 	var lastErr error
-	for i := 0; i < 3; i++ { // retry tối đa 3 lần
+	for i := 0; i < 3; i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 

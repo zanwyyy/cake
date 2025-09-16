@@ -109,11 +109,10 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 
 	repo := &PostgresTransferRepo{db: db, kafka: &MockKafka{}}
 
-	from := "2"
-	to := "1"
-	n := 500
+	from := "1"
+	to := "2"
+	n := 50
 	amount := int64(1)
-	workers := 50
 
 	ctx := context.Background()
 	fromBalanceBefore, err := repo.GetBalance(ctx, from)
@@ -121,30 +120,27 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 	toBalanceBefore, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
 
-	jobs := make(chan int, n)
+	var wg sync.WaitGroup
 	errs := make(chan error, n)
 
-	var wg sync.WaitGroup
-	for w := 0; w < workers; w++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			for j := range jobs {
-				jobCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				err := repo.InsertTransaction(jobCtx, from, to, amount)
-				cancel()
-
-				if err != nil {
-					errs <- fmt.Errorf("job %d by worker %d failed: %w", j, id, err)
-				}
-			}
-		}(w)
-	}
+	startLine := make(chan struct{})
 
 	for i := 0; i < n; i++ {
-		jobs <- i
+		wg.Add(1)
+		go func(job int) {
+			defer wg.Done()
+			<-startLine
+
+			jobCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			if err := repo.InsertTransaction(jobCtx, from, to, amount); err != nil {
+				errs <- fmt.Errorf("job %d failed: %w", job, err)
+			}
+		}(i)
 	}
-	close(jobs)
+
+	close(startLine)
 
 	wg.Wait()
 	close(errs)

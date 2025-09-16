@@ -83,19 +83,21 @@ func (p *PubSub) Publish(data []byte) error {
 func (p *PubSub) Subscribe(ctx context.Context) error {
 	subPath := fmt.Sprintf("projects/%s/subscriptions/%s",
 		p.config.PubSub.ProjectID, p.config.PubSub.Subcription)
-
+	nctx := context.Background()
 	log.Println("Starting PubSub consumer...")
 	for {
-		nctx := context.Background()
+
 		resp, err := p.subClient.Pull(nctx, &pubsubpb.PullRequest{
 			Subscription: subPath,
 			MaxMessages:  100,
 		})
 		if err != nil {
+			fmt.Println(err)
 			continue
 		}
 
 		if resp == nil || len(resp.ReceivedMessages) == 0 {
+			fmt.Println(err)
 			continue
 		}
 

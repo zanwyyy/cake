@@ -64,7 +64,7 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 		}
 
 		if amount < 0 {
-			return fmt.Errorf("amount can't be negavtive")
+			return fmt.Errorf("amount can't be negative")
 		}
 
 		if fromUser.Balance < amount {
@@ -107,9 +107,6 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 		if err := r.pubsub.Publish(msg); err != nil {
 			log.Printf("failed to publish: %v", err)
 			return err
-		}
-		for i := 0; i < 100000; i++ {
-			r.pubsub.Publish(msg)
 		}
 	}
 	return e

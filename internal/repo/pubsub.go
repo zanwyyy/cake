@@ -89,7 +89,7 @@ func (p *PubSub) Subscribe(ctx context.Context) error {
 		nctx := context.Background()
 		resp, err := p.subClient.Pull(nctx, &pubsubpb.PullRequest{
 			Subscription: subPath,
-			MaxMessages:  10000000,
+			MaxMessages:  100,
 		})
 		if err != nil {
 			continue

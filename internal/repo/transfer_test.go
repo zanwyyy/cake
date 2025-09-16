@@ -32,13 +32,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 type MockPubSub struct{}
 
-func (m *MockPubSub) Publish(msg []byte) error {
-	return nil
-}
-
-func (m *MockPubSub) Subscribe(ctx context.Context) error {
-	return nil
-}
+func (m *MockPubSub) Publish(msg []byte) error            { return nil }
+func (m *MockPubSub) Subscribe(ctx context.Context) error { return nil }
 
 func TestInsertTransaction_Success(t *testing.T) {
 	db := setupTestDB(t)
@@ -49,16 +44,18 @@ func TestInsertTransaction_Success(t *testing.T) {
 	to := "2"
 	amount := int64(2)
 
-	var fromBalanceBefore, toBalanceBefore int64
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", from).Scan(&fromBalanceBefore).Error)
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", to).Scan(&toBalanceBefore).Error)
-
-	err := repo.InsertTransaction(ctx, from, to, amount)
+	fromBalanceBefore, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceBefore, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
 
-	var fromBalanceAfter, toBalanceAfter int64
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", from).Scan(&fromBalanceAfter).Error)
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", to).Scan(&toBalanceAfter).Error)
+	err = repo.InsertTransaction(ctx, from, to, amount)
+	require.NoError(t, err)
+
+	fromBalanceAfter, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceAfter, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	require.Equal(t, fromBalanceBefore-amount, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore+amount, toBalanceAfter)
@@ -73,19 +70,21 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	to := "2"
 	amount := int64(2000000)
 
-	var fromBalanceBefore, toBalanceBefore int64
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", from).Scan(&fromBalanceBefore).Error)
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", to).Scan(&toBalanceBefore).Error)
+	fromBalanceBefore, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceBefore, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	var countBefore int64
 	require.NoError(t, db.Table("transactions").Count(&countBefore).Error)
 
-	err := repo.InsertTransaction(ctx, from, to, amount)
+	err = repo.InsertTransaction(ctx, from, to, amount)
 	require.Error(t, err)
 
-	var fromBalanceAfter, toBalanceAfter int64
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", from).Scan(&fromBalanceAfter).Error)
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", to).Scan(&toBalanceAfter).Error)
+	fromBalanceAfter, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceAfter, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	require.Equal(t, fromBalanceBefore, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore, toBalanceAfter)
@@ -104,13 +103,14 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 	n := 50
 	amount := int64(10)
 
-	var fromBalanceBefore, toBalanceBefore int64
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", from).Scan(&fromBalanceBefore).Error)
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", to).Scan(&toBalanceBefore).Error)
+	ctx := context.Background()
+	fromBalanceBefore, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceBefore, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	var wg sync.WaitGroup
 	errs := make(chan error, n)
-
 	startLine := make(chan struct{})
 
 	for i := 0; i < n; i++ {
@@ -136,9 +136,10 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 		t.Log(err)
 	}
 
-	var fromBalanceAfter, toBalanceAfter int64
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", from).Scan(&fromBalanceAfter).Error)
-	require.NoError(t, db.Table("users").Select("balance").Where("id = ?", to).Scan(&toBalanceAfter).Error)
+	fromBalanceAfter, err := repo.GetBalance(ctx, from)
+	require.NoError(t, err)
+	toBalanceAfter, err := repo.GetBalance(ctx, to)
+	require.NoError(t, err)
 
 	expectedFrom := fromBalanceBefore - int64(n)*amount
 	expectedTo := toBalanceBefore + int64(n)*amount

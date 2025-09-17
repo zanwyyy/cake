@@ -2,7 +2,8 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    balance BIGINT NOT NULL DEFAULT 0
+    balance BIGINT NOT NULL DEFAULT 0,
+    password TEXT NOT NULL
 );
 
 -- Tạo bảng transactions
@@ -14,10 +15,10 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 -- Dữ liệu mẫu cho users
-INSERT INTO users (name, balance) VALUES
-('Alice', 1000),
-('Bob', 5000),
-('Charlie', 2000);
+INSERT INTO users (name, balance, password) VALUES
+('Alice', 1000, 'hello'),
+('Bob', 5000,'hi'),
+('Charlie', 2000,'hhee');
 
 -- Dữ liệu mẫu cho transactions
 INSERT INTO transactions (from_user, to_user, amount) VALUES

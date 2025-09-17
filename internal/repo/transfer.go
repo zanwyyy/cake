@@ -17,6 +17,7 @@ type TransferRepository interface {
 	InsertTransaction(ctx context.Context, from, to string, amount int64) error
 	ListTransactions(ctx context.Context, from string) ([]model.Transaction, error)
 	GetBalance(ctx context.Context, userID string) (int64, error)
+	GetPassword(ctx context.Context, userId string) (string, error)
 }
 
 type GormTransferRepo struct {
@@ -100,6 +101,21 @@ func (r *GormTransferRepo) ListTransactions(ctx context.Context, from string) ([
 }
 
 func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to string, amount int64) error {
+	if err := validateAmount(amount); err != nil {
+		return err
+	}
+
+	if err := validateUserID(ctx, r, from); err != nil {
+		return err
+	}
+
+	if err := validateUserID(ctx, r, to); err != nil {
+		return err
+	}
+
+	if from == to {
+		return fmt.Errorf("from_user can't be equal to to_user")
+	}
 	e := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var fromUser, toUser model.User
 
@@ -107,23 +123,6 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 			First(&fromUser, "id = ?", from).Error; err != nil {
 			return err
 		}
-
-		if err := validateAmount(amount); err != nil {
-			return err
-		}
-
-		if err := validateUserID(ctx, r, from); err != nil {
-			return err
-		}
-
-		if err := validateUserID(ctx, r, to); err != nil {
-			return err
-		}
-
-		if from == to {
-			return fmt.Errorf("from_user can't be equal to to_user")
-		}
-
 		if fromUser.Balance < amount {
 			return fmt.Errorf("balance < amount")
 		}
@@ -183,4 +182,22 @@ func (r *GormTransferRepo) GetBalance(ctx context.Context, userID string) (int64
 		return 0, err
 	}
 	return balance, nil
+}
+
+func (r *GormTransferRepo) GetPassword(ctx context.Context, userId string) (string, error) {
+	var password string
+
+	if err := validateUserID(ctx, r, userId); err != nil {
+		return "", err
+	}
+
+	if err := r.db.WithContext(ctx).
+		Table("users").
+		Select("password").
+		Where("id = ?", userId).
+		Scan(&password).Error; err != nil {
+		return "", err
+	}
+
+	return password, nil
 }

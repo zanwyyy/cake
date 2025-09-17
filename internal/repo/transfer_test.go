@@ -101,7 +101,7 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 	from := "2"
 	to := "1"
 	n := 50
-	amount := int64(10)
+	amount := int64(1)
 
 	ctx := context.Background()
 	fromBalanceBefore, err := repo.GetBalance(ctx, from)

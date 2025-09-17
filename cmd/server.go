@@ -23,6 +23,7 @@ func NewServeCommand() *cobra.Command {
 					service.NewTransferService,
 					repo.NewPubSubClient,
 					config.LoadConfig,
+					service.NewauthService,
 				),
 				fx.Invoke(
 					RegisterHTTPLifecycle,

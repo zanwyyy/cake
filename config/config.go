@@ -10,6 +10,7 @@ type Config struct {
 	Gateway  GatewayConfig
 	Database DatabaseConfig
 	PubSub   PubSubConfig
+	JWT      JWT
 }
 
 type ServerConfig struct {
@@ -32,6 +33,11 @@ type PubSubConfig struct {
 	Topic       string
 }
 
+type JWT struct {
+	accessSecret  string
+	refreshSecret string
+}
+
 func LoadConfig() *Config {
 	cfg := &Config{
 		Database: DatabaseConfig{
@@ -49,6 +55,10 @@ func LoadConfig() *Config {
 		Gateway: GatewayConfig{
 			HTTPAddr: getEnv("HTTP_ADDR", ":8080"),
 			GRPCAddr: getEnv("GATEWAY_GRPC_ADDR", "localhost:9090"),
+		},
+		JWT: JWT{
+			accessSecret:  getEnv("AccessSecret", "access"),
+			refreshSecret: getEnv("RefreshSecret", "refresh"),
 		},
 	}
 

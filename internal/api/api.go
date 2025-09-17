@@ -8,11 +8,15 @@ import (
 
 type TransferService struct {
 	pb.UnimplementedTransferServiceServer
-	svc service.TransferService
+	svc  service.TransferService
+	auth service.AuthService
 }
 
-func NewTransferService(svc service.TransferService) *TransferService {
-	return &TransferService{svc: svc}
+func NewTransferService(svc service.TransferService, auth service.AuthService) *TransferService {
+	return &TransferService{
+		svc:  svc,
+		auth: auth,
+	}
 }
 
 func (s *TransferService) SendMoney(ctx context.Context, req *pb.SendMoneyRequest) (*pb.SendMoneyResponse, error) {
@@ -25,4 +29,8 @@ func (s *TransferService) ListTransactions(ctx context.Context, req *pb.ListTran
 
 func (s *TransferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
 	return s.svc.GetBalance(ctx, req)
+}
+
+func (s *TransferService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	return s.auth.Login(ctx, req)
 }

@@ -4,6 +4,7 @@ go 1.25.1
 
 require (
 	cloud.google.com/go/pubsub v1.49.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.10.0

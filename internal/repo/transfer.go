@@ -6,6 +6,7 @@ import (
 	"log"
 	"project/config"
 	"project/internal/model"
+	"unicode/utf8"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -21,6 +22,48 @@ type TransferRepository interface {
 type GormTransferRepo struct {
 	db     *gorm.DB
 	pubsub PubSubInterface
+}
+
+func validateUserID(ctx context.Context, r *GormTransferRepo, userID string) error {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userID).
+		Count(&count).Error
+
+	if err != nil {
+		return fmt.Errorf("failed to check user existence: %w", err)
+	}
+	if count == 0 {
+		return fmt.Errorf("user not exist")
+	}
+
+	if userID == "" {
+		return fmt.Errorf("user ID cannot be empty")
+	}
+
+	if len(userID) > 50 {
+		return fmt.Errorf("user ID too long")
+	}
+
+	if !utf8.ValidString(userID) {
+		return fmt.Errorf("user ID contains invalid characters")
+	}
+
+	return nil
+}
+
+func validateAmount(amount int64) error {
+	if amount <= 0 {
+		return fmt.Errorf("amount cannot be negative")
+	}
+
+	const maxAmount = 1000000000 // 1 billion limit
+	if amount > maxAmount {
+		return fmt.Errorf("amount exceeds maximum limit")
+	}
+
+	return nil
 }
 
 func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
@@ -45,6 +88,9 @@ func NewPostgresTransferRepo(db *gorm.DB, pubsub PubSubInterface) TransferReposi
 
 func (r *GormTransferRepo) ListTransactions(ctx context.Context, from string) ([]model.Transaction, error) {
 	var txs []model.Transaction
+	if err := validateUserID(ctx, r, from); err != nil {
+		return nil, err
+	}
 	if err := r.db.WithContext(ctx).
 		Where("from_user = ?", from).
 		Find(&txs).Error; err != nil {
@@ -62,16 +108,24 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 			return err
 		}
 
-		if amount < 0 {
-			return fmt.Errorf("amount can't be negative")
+		if err := validateAmount(amount); err != nil {
+			return err
 		}
 
-		if fromUser.Balance < amount {
-			return fmt.Errorf("insufficient balance")
+		if err := validateUserID(ctx, r, from); err != nil {
+			return err
+		}
+
+		if err := validateUserID(ctx, r, to); err != nil {
+			return err
 		}
 
 		if from == to {
 			return fmt.Errorf("from_user can't be equal to to_user")
+		}
+
+		if fromUser.Balance < amount {
+			return fmt.Errorf("balance < amount")
 		}
 
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -116,6 +170,11 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 
 func (r *GormTransferRepo) GetBalance(ctx context.Context, userID string) (int64, error) {
 	var balance int64
+
+	if err := validateUserID(ctx, r, userID); err != nil {
+		return 0, err
+	}
+
 	if err := r.db.WithContext(ctx).
 		Table("users").
 		Select("balance").

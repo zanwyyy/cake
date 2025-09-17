@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"project/config"
@@ -71,6 +70,10 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 			return fmt.Errorf("insufficient balance")
 		}
 
+		if from == to {
+			return fmt.Errorf("from_user can't be equal to to_user")
+		}
+
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&toUser, "id = ?", to).Error; err != nil {
 			return err
@@ -97,25 +100,28 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 		return nil
 	})
 	if e == nil {
-		event := model.TransactionEvent{
-			From:   from,
-			To:     to,
-			Amount: amount,
-			Status: "success",
-		}
-		msg, _ := json.Marshal(event)
-		if err := r.pubsub.Publish(msg); err != nil {
+		msg := fmt.Sprintf(
+			`{"from":"%s","to":"%s","amount":%d,"status":"success"}`,
+			from, to, amount,
+		)
+
+		if err := r.pubsub.Publish([]byte(msg)); err != nil {
 			log.Printf("failed to publish: %v", err)
 			return err
 		}
 	}
+
 	return e
 }
 
 func (r *GormTransferRepo) GetBalance(ctx context.Context, userID string) (int64, error) {
-	var user model.User
-	if err := r.db.WithContext(ctx).First(&user, "id = ?", userID).Error; err != nil {
+	var balance int64
+	if err := r.db.WithContext(ctx).
+		Table("users").
+		Select("balance").
+		Where("id = ?", userID).
+		Scan(&balance).Error; err != nil {
 		return 0, err
 	}
-	return user.Balance, nil
+	return balance, nil
 }

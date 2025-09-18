@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 )
 
 type Config struct {
@@ -11,6 +12,7 @@ type Config struct {
 	Database DatabaseConfig
 	PubSub   PubSubConfig
 	JWT      JWT
+	Redis    RedisConfig
 }
 
 type ServerConfig struct {
@@ -33,9 +35,15 @@ type PubSubConfig struct {
 	Topic       string
 }
 
+type RedisConfig struct {
+	RedisAddr string
+	Password  string
+	Db        string
+}
+
 type JWT struct {
-	accessSecret  string
-	refreshSecret string
+	AccessSecret   string
+	AccessTokenTTL time.Duration
 }
 
 func LoadConfig() *Config {
@@ -57,8 +65,12 @@ func LoadConfig() *Config {
 			GRPCAddr: getEnv("GATEWAY_GRPC_ADDR", "localhost:9090"),
 		},
 		JWT: JWT{
-			accessSecret:  getEnv("AccessSecret", "access"),
-			refreshSecret: getEnv("RefreshSecret", "refresh"),
+			AccessSecret:   getEnv("AccessSecret", "access"),
+			AccessTokenTTL: 5 * time.Minute,
+		},
+		Redis: RedisConfig{
+			RedisAddr: getEnv("Redis_Addr", "localhost:6379"),
+			Password:  getEnv("Redis_Password", ""),
 		},
 	}
 

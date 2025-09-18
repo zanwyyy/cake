@@ -24,6 +24,7 @@ func NewServeCommand() *cobra.Command {
 					repo.NewPubSubClient,
 					config.LoadConfig,
 					service.NewauthService,
+					repo.NewRedisClient,
 				),
 				fx.Invoke(
 					RegisterHTTPLifecycle,

@@ -1,4 +1,6 @@
--- Tạo bảng users
+-- ========================
+--  Users table
+-- ========================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -6,22 +8,31 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 );
 
--- Tạo bảng transactions
-CREATE TABLE IF NOT EXISTS transactions (
+-- ========================
+--  Sessions table
+-- ========================
+CREATE TABLE IF NOT EXISTS sessions (
     id SERIAL PRIMARY KEY,
-    from_user TEXT NOT NULL,
-    to_user   TEXT NOT NULL,
-    amount BIGINT NOT NULL
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    access_token TEXT,
+    refresh_token TEXT,
+    version INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- Dữ liệu mẫu cho users
-INSERT INTO users (name, balance, password) VALUES
-('Alice', 1000, 'hello'),
-('Bob', 5000,'hi'),
-('Charlie', 2000,'hhee');
+-- ========================
+--  Indexes
+-- ========================
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
--- Dữ liệu mẫu cho transactions
-INSERT INTO transactions (from_user, to_user, amount) VALUES
-('1', '2', 200),
-('2', '3', 100),
-('1', '3', 50);
+-- ========================
+--  Demo seed data (optional)
+-- ========================
+INSERT INTO users (id, name, balance, password)
+VALUES 
+    (1, 'alice', 10000, 'password123'),
+    (2, 'bob', 5000, 'password456'),
+    (3, 'bb', 5000, 'password')
+ON CONFLICT (id) DO NOTHING;
+

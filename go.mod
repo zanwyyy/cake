@@ -4,13 +4,17 @@ go 1.25.1
 
 require (
 	cloud.google.com/go/pubsub v1.49.0
-	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/api v0.247.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c
 	google.golang.org/protobuf v1.36.7
+)
+
+require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 )
 
 require (
@@ -56,7 +60,10 @@ require (
 )
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/redis/go-redis/v9 v9.14.0
 	github.com/spf13/pflag v1.0.9 // indirect
 	go.uber.org/fx v1.24.0
 	google.golang.org/grpc v1.75.0

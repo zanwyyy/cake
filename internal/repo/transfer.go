@@ -6,7 +6,6 @@ import (
 	"log"
 	"project/config"
 	"project/internal/model"
-	"unicode/utf8"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,10 +13,11 @@ import (
 )
 
 type TransferRepository interface {
-	InsertTransaction(ctx context.Context, from, to string, amount int64) error
-	ListTransactions(ctx context.Context, from string) ([]model.Transaction, error)
-	GetBalance(ctx context.Context, userID string) (int64, error)
-	GetPassword(ctx context.Context, userId string) (string, error)
+	InsertTransaction(ctx context.Context, from, to int64, amount int64) error
+	ListTransactions(ctx context.Context, from int64) ([]model.Transaction, error)
+	GetBalance(ctx context.Context, userID int64) (int64, error)
+	GetPassword(ctx context.Context, userId int64) (string, error)
+	GetTokenSession(ctx context.Context, userID int64, sessionID string) (string, error)
 }
 
 type GormTransferRepo struct {
@@ -25,7 +25,7 @@ type GormTransferRepo struct {
 	pubsub PubSubInterface
 }
 
-func validateUserID(ctx context.Context, r *GormTransferRepo, userID string) error {
+func validateUserID(ctx context.Context, r *GormTransferRepo, userID int64) error {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.User{}).
@@ -37,18 +37,6 @@ func validateUserID(ctx context.Context, r *GormTransferRepo, userID string) err
 	}
 	if count == 0 {
 		return fmt.Errorf("user not exist")
-	}
-
-	if userID == "" {
-		return fmt.Errorf("user ID cannot be empty")
-	}
-
-	if len(userID) > 50 {
-		return fmt.Errorf("user ID too long")
-	}
-
-	if !utf8.ValidString(userID) {
-		return fmt.Errorf("user ID contains invalid characters")
 	}
 
 	return nil
@@ -87,7 +75,7 @@ func NewPostgresTransferRepo(db *gorm.DB, pubsub PubSubInterface) TransferReposi
 	}
 }
 
-func (r *GormTransferRepo) ListTransactions(ctx context.Context, from string) ([]model.Transaction, error) {
+func (r *GormTransferRepo) ListTransactions(ctx context.Context, from int64) ([]model.Transaction, error) {
 	var txs []model.Transaction
 	if err := validateUserID(ctx, r, from); err != nil {
 		return nil, err
@@ -100,7 +88,7 @@ func (r *GormTransferRepo) ListTransactions(ctx context.Context, from string) ([
 	return txs, nil
 }
 
-func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to string, amount int64) error {
+func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64, amount int64) error {
 	if err := validateAmount(amount); err != nil {
 		return err
 	}
@@ -167,7 +155,7 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to strin
 	return e
 }
 
-func (r *GormTransferRepo) GetBalance(ctx context.Context, userID string) (int64, error) {
+func (r *GormTransferRepo) GetBalance(ctx context.Context, userID int64) (int64, error) {
 	var balance int64
 
 	if err := validateUserID(ctx, r, userID); err != nil {
@@ -184,20 +172,36 @@ func (r *GormTransferRepo) GetBalance(ctx context.Context, userID string) (int64
 	return balance, nil
 }
 
-func (r *GormTransferRepo) GetPassword(ctx context.Context, userId string) (string, error) {
+func (r *GormTransferRepo) GetPassword(ctx context.Context, userID int64) (string, error) {
 	var password string
 
-	if err := validateUserID(ctx, r, userId); err != nil {
+	if err := validateUserID(ctx, r, userID); err != nil {
 		return "", err
 	}
 
 	if err := r.db.WithContext(ctx).
 		Table("users").
 		Select("password").
-		Where("id = ?", userId).
+		Where("id = ?", userID).
 		Scan(&password).Error; err != nil {
 		return "", err
 	}
 
 	return password, nil
+}
+
+func (r *GormTransferRepo) GetTokenSession(ctx context.Context, userID int64, sessionID string) (string, error) {
+	var token string
+
+	err := r.db.WithContext(ctx).
+		Table("sessions").
+		Select("access_token").
+		Where("user_id = ? AND id = ?", userID, sessionID).
+		Scan(&token).Error
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

@@ -40,8 +40,8 @@ func TestInsertTransaction_Success(t *testing.T) {
 	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
 
 	ctx := context.Background()
-	from := "1"
-	to := "2"
+	from := int64(1)
+	to := int64(2)
 	amount := int64(2)
 
 	fromBalanceBefore, err := repo.GetBalance(ctx, from)
@@ -66,8 +66,8 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
 
 	ctx := context.Background()
-	from := "1"
-	to := "2"
+	from := int64(1)
+	to := int64(2)
 	amount := int64(2000000)
 
 	fromBalanceBefore, err := repo.GetBalance(ctx, from)
@@ -98,8 +98,8 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 	db := setupTestDB(t)
 	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
 
-	from := "2"
-	to := "1"
+	from := int64(2)
+	to := int64(1)
 	n := 50
 	amount := int64(1)
 
@@ -158,9 +158,9 @@ func TestInsertTransaction_InvalidUsers(t *testing.T) {
 
 	ctx := context.Background()
 
-	err := repo.InsertTransaction(ctx, "nonexistent", "1", 100)
+	err := repo.InsertTransaction(ctx, -1, 1, 100)
 	require.Error(t, err)
 
-	err = repo.InsertTransaction(ctx, "1", "nonexistent", 100)
+	err = repo.InsertTransaction(ctx, 1, -1, 100)
 	require.Error(t, err)
 }

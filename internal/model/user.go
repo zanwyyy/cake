@@ -1,7 +1,8 @@
 package model
 
 type User struct {
-	ID      uint   `gorm:"primaryKey;autoIncrement"`
-	Name    string `gorm:"not null"`
-	Balance int64  `gorm:"not null;default:0"`
+	ID       int64  `gorm:"primaryKey;autoIncrement"`
+	Name     string `gorm:"not null"`
+	Balance  int64  `gorm:"not null;default:0"`
+	Password string `gorm:"not null"`
 }

@@ -1,4 +1,4 @@
-version: "4.0"
+version: "4.1"
 
 services:
   postgres:
@@ -20,6 +20,7 @@ services:
     command: ["./server", "server"]
     depends_on:
       - postgres
+      - redis
     ports:
       - "8080:8080"
       - "9090:9090"
@@ -28,6 +29,7 @@ services:
       GATEWAY_GRPC_ADDR: app-server:9090
       Pubsub_Endpoint: dns:///host.docker.internal:8085
       Pubsub_Topic: transactions
+      Redis_Addr: redis:6379
 
 
   app-consumer-pubsub:
@@ -40,5 +42,19 @@ services:
       Pubsub_Endpoint: dns:///host.docker.internal:8085
       Pubsub_Subcription: sub-transactions
       Pubsub_Topic: transactions
+
+  redis:
+    image: redis:7.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"] 
+    volumes:
+      - redis-data:/data
+      
+      
+      
+volumes:
+  redis-data:
 
 

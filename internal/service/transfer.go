@@ -8,7 +8,7 @@ import (
 
 type TransferService interface {
 	ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error)
-	InsertTransaction(ctx context.Context, from, to string, amount int64) (*pb.SendMoneyResponse, error)
+	InsertTransaction(ctx context.Context, from, to int64, amount int64) (*pb.SendMoneyResponse, error)
 	GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error)
 }
 
@@ -21,7 +21,7 @@ func NewTransferService(r repo.TransferRepository) TransferService {
 }
 
 func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
-	txs, err := s.repo.ListTransactions(ctx, req.UserId)
+	txs, err := s.repo.ListTransactions(ctx, req.Base.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTran
 	return resp, nil
 }
 
-func (s *transferService) InsertTransaction(ctx context.Context, from, to string, amount int64) (*pb.SendMoneyResponse, error) {
+func (s *transferService) InsertTransaction(ctx context.Context, from, to int64, amount int64) (*pb.SendMoneyResponse, error) {
 	err := s.repo.InsertTransaction(ctx, from, to, amount)
 	if err != nil {
 		return &pb.SendMoneyResponse{
@@ -54,13 +54,13 @@ func (s *transferService) InsertTransaction(ctx context.Context, from, to string
 }
 
 func (s *transferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
-	balance, err := s.repo.GetBalance(ctx, req.UserId)
+	balance, err := s.repo.GetBalance(ctx, req.Base.UserId)
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.GetBalanceResponse{
-		UserId:  req.UserId,
+		UserId:  req.Base.UserId,
 		Balance: balance,
 	}, nil
 }

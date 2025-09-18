@@ -2,67 +2,70 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"project/config"
 	"project/internal/repo"
 	"project/internal/utils"
 	"project/pkg/pb"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+var user int64
+
 type AuthService interface {
 	Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error)
+	Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error)
 }
 
 type authService struct {
 	db     repo.TransferRepository
 	config *config.Config
+	redis  repo.RedisClient
 }
 
-func NewauthService(config *config.Config, db repo.TransferRepository) AuthService {
+func NewauthService(config *config.Config, db repo.TransferRepository, redis repo.RedisClient) AuthService {
 	return &authService{
 		db:     db,
 		config: config,
+		redis:  redis,
 	}
 }
 
 func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-
+	user = req.Username
 	pass, err := a.db.GetPassword(ctx, req.Username)
+	if err != nil || pass != req.Password {
+		return nil, status.Error(codes.Unauthenticated, "invalid username or password")
+	}
+
+	tokenID := utils.NewSessionID()
+
+	accessToken, err := utils.GenerateAccessToken(req.Username, tokenID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid username or password")
-	}
-	if pass != req.Password {
-		return nil, fmt.Errorf("invalid username or password")
+		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
 	}
 
-	// 2. Generate tokens
-	accessToken, err := utils.GenerateAccessToken(req.Username)
+	a.redis.SaveToken(ctx, req.Username, accessToken, a.config.JWT.AccessTokenTTL)
+
+	resp := &pb.LoginResponse{
+		AccessToken: accessToken,
+	}
+
+	log.Printf("[Login] success user=%d tokenID=%s", req.Username, tokenID)
+	return resp, nil
+}
+
+func (a *authService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+
+	// Xoá token trong Redis
+	err := a.redis.DeleteToken(ctx, user)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to generate access token")
+		log.Printf("[Logout] failed to remove token for user=%d: %v", user, err)
+		return nil, status.Error(codes.Internal, "failed to logout")
 	}
 
-	refreshToken, err := utils.GenerateRefreshToken(req.Username)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to generate refresh token")
-	}
-
-	cookie := fmt.Sprintf(
-		"access_token=%s; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=%d",
-		accessToken, 15*60, // 15 minutes
-	)
-	md := metadata.Pairs("set-cookie", cookie)
-	if err := grpc.SetHeader(ctx, md); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to set cookie")
-	}
-
-	return &pb.LoginResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}, nil
+	log.Printf("[Logout] user=%d logged out successfully", user)
+	return &pb.LogoutResponse{Success: true}, nil
 }

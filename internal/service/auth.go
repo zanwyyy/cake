@@ -62,13 +62,13 @@ func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 }
 
 func (a *authService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-
-	err := a.redis.DeleteToken(ctx, req.UserId)
+	userID := a.GetUserID(ctx)
+	err := a.redis.DeleteToken(ctx, userID)
 	if err != nil {
-		log.Printf("[Logout] failed to remove token for user=%d: %v", req.UserId, err)
+		log.Printf("[Logout] failed to remove token for user=%d: %v", userID, err)
 		return nil, status.Error(codes.Internal, "failed to logout")
 	}
 
-	log.Printf("[Logout] user=%d logged out successfully", req.UserId)
+	log.Printf("[Logout] user=%d logged out successfully", userID)
 	return &pb.LogoutResponse{Success: true}, nil
 }

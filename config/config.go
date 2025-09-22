@@ -8,8 +8,6 @@ import (
 
 type ctxKeyID string
 
-const userIDKey ctxKeyID = "userID"
-
 type Config struct {
 	Server    ServerConfig
 	Gateway   GatewayConfig
@@ -77,6 +75,7 @@ func LoadConfig() *Config {
 			RedisAddr: getEnv("Redis_Addr", "localhost:6379"),
 			Password:  getEnv("Redis_Password", ""),
 		},
+		UserIDKey: ctxKeyID("userID"),
 	}
 
 	log.Printf("Loaded config: %+v\n", cfg)

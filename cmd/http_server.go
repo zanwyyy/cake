@@ -42,6 +42,12 @@ func RegisterHTTPLifecycle(lc fx.Lifecycle, gw *HTTPGateway) {
 					log.Println(err)
 				}
 
+				if err := pb.RegisterAuthServiceHandlerFromEndpoint(
+					gatewayCtx, gw.Mux, gw.GRPCAddr, opts,
+				); err != nil {
+					log.Println(err)
+				}
+
 				log.Printf("HTTP Gateway listening on %s (proxy to %s)", gw.HTTPAddr, gw.GRPCAddr)
 				if err := http.ListenAndServe(gw.HTTPAddr, gw.Mux); err != nil {
 					log.Println(err)

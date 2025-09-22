@@ -23,7 +23,7 @@ func GenerateAccessToken(userID int64, sessionID string, accessTokenTTL time.Dur
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(accessSecret)
+	return token.SignedString([]byte(accessSecret))
 }
 
 func ValidateAccessToken(tokenStr string, accessSecret string) (*Claims, error) {

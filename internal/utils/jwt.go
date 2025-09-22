@@ -4,25 +4,16 @@ import (
 	"errors"
 	"time"
 
-	"github.com/bwmarrin/snowflake"
 	"github.com/golang-jwt/jwt/v5"
-)
-
-var (
-	accessSecret = []byte("your-access-secret")
-
-	accessTokenTTL = 15 * time.Minute
-
-	node *snowflake.Node
 )
 
 type Claims struct {
 	UserID    int64  `json:"user_id"`
-	SessionID string `json:"sid"` // snowflake id
+	SessionID string `json:"sid"`
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(userID int64, sessionID string) (string, error) {
+func GenerateAccessToken(userID int64, sessionID string, accessTokenTTL time.Duration, accessSecret string) (string, error) {
 	claims := &Claims{
 		UserID:    userID,
 		SessionID: sessionID,
@@ -35,7 +26,7 @@ func GenerateAccessToken(userID int64, sessionID string) (string, error) {
 	return token.SignedString(accessSecret)
 }
 
-func ValidateAccessToken(tokenStr string) (*Claims, error) {
+func ValidateAccessToken(tokenStr string, accessSecret string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		return accessSecret, nil
 	})

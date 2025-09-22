@@ -4,6 +4,7 @@ import (
 	"project/config"
 	"project/internal/repo"
 	"project/internal/service"
+	"project/pkg/interceptor"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
@@ -25,6 +26,7 @@ func NewServeCommand() *cobra.Command {
 					config.LoadConfig,
 					service.NewauthService,
 					repo.NewRedisClient,
+					interceptor.NewAuthInterceptor,
 				),
 				fx.Invoke(
 					RegisterHTTPLifecycle,

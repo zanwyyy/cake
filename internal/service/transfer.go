@@ -21,7 +21,7 @@ func NewTransferService(r repo.TransferRepository) TransferService {
 }
 
 func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
-	txs, err := s.repo.ListTransactions(ctx, req.Base.UserId)
+	txs, err := s.repo.ListTransactions(ctx, req.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,13 @@ func (s *transferService) InsertTransaction(ctx context.Context, from, to int64,
 }
 
 func (s *transferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
-	balance, err := s.repo.GetBalance(ctx, req.Base.UserId)
+	balance, err := s.repo.GetBalance(ctx, req.UserId)
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.GetBalanceResponse{
-		UserId:  req.Base.UserId,
+		UserId:  req.UserId,
 		Balance: balance,
 	}, nil
 }

@@ -22,53 +22,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type BaseRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BaseRequest) Reset() {
-	*x = BaseRequest{}
-	mi := &file_transfer_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BaseRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BaseRequest) ProtoMessage() {}
-
-func (x *BaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BaseRequest.ProtoReflect.Descriptor instead.
-func (*BaseRequest) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *BaseRequest) GetUserId() int64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
-}
-
 type SendMoneyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Base          *BaseRequest           `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	From          int64                  `protobuf:"varint,1,opt,name=from,proto3" json:"from,omitempty"`
 	To            int64                  `protobuf:"varint,2,opt,name=to,proto3" json:"to,omitempty"`
 	Amount        int64                  `protobuf:"varint,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -77,7 +33,7 @@ type SendMoneyRequest struct {
 
 func (x *SendMoneyRequest) Reset() {
 	*x = SendMoneyRequest{}
-	mi := &file_transfer_proto_msgTypes[1]
+	mi := &file_transfer_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -89,7 +45,7 @@ func (x *SendMoneyRequest) String() string {
 func (*SendMoneyRequest) ProtoMessage() {}
 
 func (x *SendMoneyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[1]
+	mi := &file_transfer_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -102,14 +58,14 @@ func (x *SendMoneyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMoneyRequest.ProtoReflect.Descriptor instead.
 func (*SendMoneyRequest) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{1}
+	return file_transfer_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SendMoneyRequest) GetBase() *BaseRequest {
+func (x *SendMoneyRequest) GetFrom() int64 {
 	if x != nil {
-		return x.Base
+		return x.From
 	}
-	return nil
+	return 0
 }
 
 func (x *SendMoneyRequest) GetTo() int64 {
@@ -136,7 +92,7 @@ type SendMoneyResponse struct {
 
 func (x *SendMoneyResponse) Reset() {
 	*x = SendMoneyResponse{}
-	mi := &file_transfer_proto_msgTypes[2]
+	mi := &file_transfer_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -148,7 +104,7 @@ func (x *SendMoneyResponse) String() string {
 func (*SendMoneyResponse) ProtoMessage() {}
 
 func (x *SendMoneyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[2]
+	mi := &file_transfer_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -161,7 +117,7 @@ func (x *SendMoneyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMoneyResponse.ProtoReflect.Descriptor instead.
 func (*SendMoneyResponse) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{2}
+	return file_transfer_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SendMoneyResponse) GetSuccess() bool {
@@ -180,14 +136,14 @@ func (x *SendMoneyResponse) GetErrorMessage() string {
 
 type ListTransactionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Base          *BaseRequest           `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListTransactionsRequest) Reset() {
 	*x = ListTransactionsRequest{}
-	mi := &file_transfer_proto_msgTypes[3]
+	mi := &file_transfer_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -199,7 +155,7 @@ func (x *ListTransactionsRequest) String() string {
 func (*ListTransactionsRequest) ProtoMessage() {}
 
 func (x *ListTransactionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[3]
+	mi := &file_transfer_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -212,14 +168,14 @@ func (x *ListTransactionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTransactionsRequest.ProtoReflect.Descriptor instead.
 func (*ListTransactionsRequest) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{3}
+	return file_transfer_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ListTransactionsRequest) GetBase() *BaseRequest {
+func (x *ListTransactionsRequest) GetUserId() int64 {
 	if x != nil {
-		return x.Base
+		return x.UserId
 	}
-	return nil
+	return 0
 }
 
 type Transaction struct {
@@ -234,7 +190,7 @@ type Transaction struct {
 
 func (x *Transaction) Reset() {
 	*x = Transaction{}
-	mi := &file_transfer_proto_msgTypes[4]
+	mi := &file_transfer_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -246,7 +202,7 @@ func (x *Transaction) String() string {
 func (*Transaction) ProtoMessage() {}
 
 func (x *Transaction) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[4]
+	mi := &file_transfer_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -259,7 +215,7 @@ func (x *Transaction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transaction.ProtoReflect.Descriptor instead.
 func (*Transaction) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{4}
+	return file_transfer_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Transaction) GetId() int64 {
@@ -300,7 +256,7 @@ type ListTransactionsResponse struct {
 
 func (x *ListTransactionsResponse) Reset() {
 	*x = ListTransactionsResponse{}
-	mi := &file_transfer_proto_msgTypes[5]
+	mi := &file_transfer_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -312,7 +268,7 @@ func (x *ListTransactionsResponse) String() string {
 func (*ListTransactionsResponse) ProtoMessage() {}
 
 func (x *ListTransactionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[5]
+	mi := &file_transfer_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,7 +281,7 @@ func (x *ListTransactionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTransactionsResponse.ProtoReflect.Descriptor instead.
 func (*ListTransactionsResponse) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{5}
+	return file_transfer_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListTransactionsResponse) GetNumber() int64 {
@@ -344,14 +300,14 @@ func (x *ListTransactionsResponse) GetTransactions() []*Transaction {
 
 type GetBalanceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Base          *BaseRequest           `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetBalanceRequest) Reset() {
 	*x = GetBalanceRequest{}
-	mi := &file_transfer_proto_msgTypes[6]
+	mi := &file_transfer_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +319,7 @@ func (x *GetBalanceRequest) String() string {
 func (*GetBalanceRequest) ProtoMessage() {}
 
 func (x *GetBalanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[6]
+	mi := &file_transfer_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,14 +332,14 @@ func (x *GetBalanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalanceRequest.ProtoReflect.Descriptor instead.
 func (*GetBalanceRequest) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{6}
+	return file_transfer_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetBalanceRequest) GetBase() *BaseRequest {
+func (x *GetBalanceRequest) GetUserId() int64 {
 	if x != nil {
-		return x.Base
+		return x.UserId
 	}
-	return nil
+	return 0
 }
 
 type GetBalanceResponse struct {
@@ -396,7 +352,7 @@ type GetBalanceResponse struct {
 
 func (x *GetBalanceResponse) Reset() {
 	*x = GetBalanceResponse{}
-	mi := &file_transfer_proto_msgTypes[7]
+	mi := &file_transfer_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -408,7 +364,7 @@ func (x *GetBalanceResponse) String() string {
 func (*GetBalanceResponse) ProtoMessage() {}
 
 func (x *GetBalanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[7]
+	mi := &file_transfer_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +377,7 @@ func (x *GetBalanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalanceResponse.ProtoReflect.Descriptor instead.
 func (*GetBalanceResponse) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{7}
+	return file_transfer_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetBalanceResponse) GetUserId() int64 {
@@ -448,7 +404,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_transfer_proto_msgTypes[8]
+	mi := &file_transfer_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -460,7 +416,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[8]
+	mi := &file_transfer_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -473,7 +429,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{8}
+	return file_transfer_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *LoginRequest) GetUsername() int64 {
@@ -493,15 +449,13 @@ func (x *LoginRequest) GetPassword() string {
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	SessionId     int64                  `protobuf:"varint,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_transfer_proto_msgTypes[9]
+	mi := &file_transfer_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +467,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[9]
+	mi := &file_transfer_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +480,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{9}
+	return file_transfer_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *LoginResponse) GetAccessToken() string {
@@ -536,29 +490,16 @@ func (x *LoginResponse) GetAccessToken() string {
 	return ""
 }
 
-func (x *LoginResponse) GetRefreshToken() string {
-	if x != nil {
-		return x.RefreshToken
-	}
-	return ""
-}
-
-func (x *LoginResponse) GetSessionId() int64 {
-	if x != nil {
-		return x.SessionId
-	}
-	return 0
-}
-
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_transfer_proto_msgTypes[10]
+	mi := &file_transfer_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -570,7 +511,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[10]
+	mi := &file_transfer_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +524,14 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{10}
+	return file_transfer_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LogoutRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type LogoutResponse struct {
@@ -595,7 +543,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_transfer_proto_msgTypes[11]
+	mi := &file_transfer_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -607,7 +555,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_transfer_proto_msgTypes[11]
+	mi := &file_transfer_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +568,7 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_transfer_proto_rawDescGZIP(), []int{11}
+	return file_transfer_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *LogoutResponse) GetSuccess() bool {
@@ -634,18 +582,16 @@ var File_transfer_proto protoreflect.FileDescriptor
 
 const file_transfer_proto_rawDesc = "" +
 	"\n" +
-	"\x0etransfer.proto\x12\vtransfer.v1\x1a\x1cgoogle/api/annotations.proto\"&\n" +
-	"\vBaseRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\"h\n" +
-	"\x10SendMoneyRequest\x12,\n" +
-	"\x04base\x18\x01 \x01(\v2\x18.transfer.v1.BaseRequestR\x04base\x12\x0e\n" +
+	"\x0etransfer.proto\x12\vtransfer.v1\x1a\x1cgoogle/api/annotations.proto\"N\n" +
+	"\x10SendMoneyRequest\x12\x12\n" +
+	"\x04from\x18\x01 \x01(\x03R\x04from\x12\x0e\n" +
 	"\x02to\x18\x02 \x01(\x03R\x02to\x12\x16\n" +
 	"\x06amount\x18\x03 \x01(\x03R\x06amount\"R\n" +
 	"\x11SendMoneyResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
-	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"G\n" +
-	"\x17ListTransactionsRequest\x12,\n" +
-	"\x04base\x18\x01 \x01(\v2\x18.transfer.v1.BaseRequestR\x04base\"Y\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"2\n" +
+	"\x17ListTransactionsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"Y\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\x03R\x04from\x12\x0e\n" +
@@ -653,30 +599,28 @@ const file_transfer_proto_rawDesc = "" +
 	"\x06amount\x18\x04 \x01(\x03R\x06amount\"p\n" +
 	"\x18ListTransactionsResponse\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\x03R\x06number\x12<\n" +
-	"\ftransactions\x18\x02 \x03(\v2\x18.transfer.v1.TransactionR\ftransactions\"A\n" +
-	"\x11GetBalanceRequest\x12,\n" +
-	"\x04base\x18\x01 \x01(\v2\x18.transfer.v1.BaseRequestR\x04base\"G\n" +
+	"\ftransactions\x18\x02 \x03(\v2\x18.transfer.v1.TransactionR\ftransactions\",\n" +
+	"\x11GetBalanceRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"G\n" +
 	"\x12GetBalanceResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x18\n" +
 	"\abalance\x18\x02 \x01(\x03R\abalance\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x03R\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"v\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"2\n" +
 	"\rLoginResponse\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
-	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x03 \x01(\x03R\tsessionId\"\x0f\n" +
-	"\rLogoutRequest\"*\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"(\n" +
+	"\rLogoutRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"*\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xc4\x04\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xc1\x04\n" +
 	"\x0fTransferService\x12h\n" +
-	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x91\x01\n" +
-	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/v1/transfer/{base.user_id}/transactions\x12z\n" +
+	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x8c\x01\n" +
+	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/transfer/{user_id}/transactions\x12u\n" +
 	"\n" +
-	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/transfer/{base.user_id}/balance\x12X\n" +
-	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/login\x12]\n" +
-	"\x06Logout\x12\x1a.transfer.v1.LogoutRequest\x1a\x1b.transfer.v1.LogoutResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logoutB\x13Z\x11project/pkg/pb;pbb\x06proto3"
+	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/transfer/{user_id}/balance\x12X\n" +
+	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/login\x12d\n" +
+	"\x06Logout\x12\x1a.transfer.v1.LogoutRequest\x1a\x1b.transfer.v1.LogoutResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/auth/{user_id}/logoutB\x13Z\x11project/pkg/pb;pbb\x06proto3"
 
 var (
 	file_transfer_proto_rawDescOnce sync.Once
@@ -690,41 +634,37 @@ func file_transfer_proto_rawDescGZIP() []byte {
 	return file_transfer_proto_rawDescData
 }
 
-var file_transfer_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_transfer_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_transfer_proto_goTypes = []any{
-	(*BaseRequest)(nil),              // 0: transfer.v1.BaseRequest
-	(*SendMoneyRequest)(nil),         // 1: transfer.v1.SendMoneyRequest
-	(*SendMoneyResponse)(nil),        // 2: transfer.v1.SendMoneyResponse
-	(*ListTransactionsRequest)(nil),  // 3: transfer.v1.ListTransactionsRequest
-	(*Transaction)(nil),              // 4: transfer.v1.Transaction
-	(*ListTransactionsResponse)(nil), // 5: transfer.v1.ListTransactionsResponse
-	(*GetBalanceRequest)(nil),        // 6: transfer.v1.GetBalanceRequest
-	(*GetBalanceResponse)(nil),       // 7: transfer.v1.GetBalanceResponse
-	(*LoginRequest)(nil),             // 8: transfer.v1.LoginRequest
-	(*LoginResponse)(nil),            // 9: transfer.v1.LoginResponse
-	(*LogoutRequest)(nil),            // 10: transfer.v1.LogoutRequest
-	(*LogoutResponse)(nil),           // 11: transfer.v1.LogoutResponse
+	(*SendMoneyRequest)(nil),         // 0: transfer.v1.SendMoneyRequest
+	(*SendMoneyResponse)(nil),        // 1: transfer.v1.SendMoneyResponse
+	(*ListTransactionsRequest)(nil),  // 2: transfer.v1.ListTransactionsRequest
+	(*Transaction)(nil),              // 3: transfer.v1.Transaction
+	(*ListTransactionsResponse)(nil), // 4: transfer.v1.ListTransactionsResponse
+	(*GetBalanceRequest)(nil),        // 5: transfer.v1.GetBalanceRequest
+	(*GetBalanceResponse)(nil),       // 6: transfer.v1.GetBalanceResponse
+	(*LoginRequest)(nil),             // 7: transfer.v1.LoginRequest
+	(*LoginResponse)(nil),            // 8: transfer.v1.LoginResponse
+	(*LogoutRequest)(nil),            // 9: transfer.v1.LogoutRequest
+	(*LogoutResponse)(nil),           // 10: transfer.v1.LogoutResponse
 }
 var file_transfer_proto_depIdxs = []int32{
-	0,  // 0: transfer.v1.SendMoneyRequest.base:type_name -> transfer.v1.BaseRequest
-	0,  // 1: transfer.v1.ListTransactionsRequest.base:type_name -> transfer.v1.BaseRequest
-	4,  // 2: transfer.v1.ListTransactionsResponse.transactions:type_name -> transfer.v1.Transaction
-	0,  // 3: transfer.v1.GetBalanceRequest.base:type_name -> transfer.v1.BaseRequest
-	1,  // 4: transfer.v1.TransferService.SendMoney:input_type -> transfer.v1.SendMoneyRequest
-	3,  // 5: transfer.v1.TransferService.ListTransactions:input_type -> transfer.v1.ListTransactionsRequest
-	6,  // 6: transfer.v1.TransferService.GetBalance:input_type -> transfer.v1.GetBalanceRequest
-	8,  // 7: transfer.v1.TransferService.Login:input_type -> transfer.v1.LoginRequest
-	10, // 8: transfer.v1.TransferService.Logout:input_type -> transfer.v1.LogoutRequest
-	2,  // 9: transfer.v1.TransferService.SendMoney:output_type -> transfer.v1.SendMoneyResponse
-	5,  // 10: transfer.v1.TransferService.ListTransactions:output_type -> transfer.v1.ListTransactionsResponse
-	7,  // 11: transfer.v1.TransferService.GetBalance:output_type -> transfer.v1.GetBalanceResponse
-	9,  // 12: transfer.v1.TransferService.Login:output_type -> transfer.v1.LoginResponse
-	11, // 13: transfer.v1.TransferService.Logout:output_type -> transfer.v1.LogoutResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	3,  // 0: transfer.v1.ListTransactionsResponse.transactions:type_name -> transfer.v1.Transaction
+	0,  // 1: transfer.v1.TransferService.SendMoney:input_type -> transfer.v1.SendMoneyRequest
+	2,  // 2: transfer.v1.TransferService.ListTransactions:input_type -> transfer.v1.ListTransactionsRequest
+	5,  // 3: transfer.v1.TransferService.GetBalance:input_type -> transfer.v1.GetBalanceRequest
+	7,  // 4: transfer.v1.TransferService.Login:input_type -> transfer.v1.LoginRequest
+	9,  // 5: transfer.v1.TransferService.Logout:input_type -> transfer.v1.LogoutRequest
+	1,  // 6: transfer.v1.TransferService.SendMoney:output_type -> transfer.v1.SendMoneyResponse
+	4,  // 7: transfer.v1.TransferService.ListTransactions:output_type -> transfer.v1.ListTransactionsResponse
+	6,  // 8: transfer.v1.TransferService.GetBalance:output_type -> transfer.v1.GetBalanceResponse
+	8,  // 9: transfer.v1.TransferService.Login:output_type -> transfer.v1.LoginResponse
+	10, // 10: transfer.v1.TransferService.Logout:output_type -> transfer.v1.LogoutResponse
+	6,  // [6:11] is the sub-list for method output_type
+	1,  // [1:6] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_transfer_proto_init() }
@@ -738,7 +678,7 @@ func file_transfer_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_transfer_proto_rawDesc), len(file_transfer_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

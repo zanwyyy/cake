@@ -12,8 +12,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var user int64
-
 type AuthService interface {
 	Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error)
 	Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error)
@@ -34,7 +32,6 @@ func NewauthService(config *config.Config, db repo.TransferRepository, redis rep
 }
 
 func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	user = req.Username
 	pass, err := a.db.GetPassword(ctx, req.Username)
 	if err != nil || pass != req.Password {
 		return nil, status.Error(codes.Unauthenticated, "invalid username or password")
@@ -42,7 +39,7 @@ func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 
 	tokenID := utils.NewSessionID()
 
-	accessToken, err := utils.GenerateAccessToken(req.Username, tokenID)
+	accessToken, err := utils.GenerateAccessToken(req.Username, tokenID, a.config.JWT.AccessTokenTTL, a.config.JWT.AccessSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
 	}
@@ -59,13 +56,12 @@ func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 
 func (a *authService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
 
-	// Xoá token trong Redis
-	err := a.redis.DeleteToken(ctx, user)
+	err := a.redis.DeleteToken(ctx, req.UserId)
 	if err != nil {
-		log.Printf("[Logout] failed to remove token for user=%d: %v", user, err)
+		log.Printf("[Logout] failed to remove token for user=%d: %v", req.UserId, err)
 		return nil, status.Error(codes.Internal, "failed to logout")
 	}
 
-	log.Printf("[Logout] user=%d logged out successfully", user)
+	log.Printf("[Logout] user=%d logged out successfully", req.UserId)
 	return &pb.LogoutResponse{Success: true}, nil
 }

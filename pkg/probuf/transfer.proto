@@ -16,13 +16,13 @@ service TransferService {
 
   rpc ListTransactions (ListTransactionsRequest) returns (ListTransactionsResponse) {
     option (google.api.http) = {
-      get: "/v1/transfer/{base.user_id}/transactions"
+      get: "/v1/transfer/{user_id}/transactions"
     };
   }
 
-   rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse) {
+  rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse) {
     option (google.api.http) = {
-      get: "/v1/transfer/{base.user_id}/balance"
+      get: "/v1/transfer/{user_id}/balance"
     };
   }
 
@@ -33,21 +33,15 @@ service TransferService {
     };
   }
 
-  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+  rpc Logout (LogoutRequest) returns (LogoutResponse) {
     option (google.api.http) = {
-      post: "/v1/auth/logout"
-      body: "*"
+      get: "/v1/auth/{user_id}/logout"
     };
   }
 }
 
-
-message BaseRequest {
-  int64 user_id = 1;
-}
-
 message SendMoneyRequest {
-  BaseRequest base = 1;
+  int64 from = 1;   
   int64 to = 2;
   int64 amount = 3;
 }
@@ -58,7 +52,7 @@ message SendMoneyResponse {
 }
 
 message ListTransactionsRequest {
-  BaseRequest base = 1;
+  int64 user_id = 1;
 }
 
 message Transaction {
@@ -69,12 +63,12 @@ message Transaction {
 }
 
 message ListTransactionsResponse {
-  int64 number = 1;                  
-  repeated Transaction transactions = 2; 
+  int64 number = 1;
+  repeated Transaction transactions = 2;
 }
 
 message GetBalanceRequest {
-  BaseRequest base = 1;
+  int64 user_id = 1;
 }
 
 message GetBalanceResponse {
@@ -89,12 +83,10 @@ message LoginRequest {
 
 message LoginResponse {
   string access_token = 1;
-  string refresh_token = 2;
-  int64 session_id = 3;
 }
 
-
 message LogoutRequest {
+  int64 user_id = 1;
 }
 
 message LogoutResponse {

@@ -142,7 +142,7 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64
 	})
 	if e == nil {
 		msg := fmt.Sprintf(
-			`{"from":"%s","to":"%s","amount":%d,"status":"success"}`,
+			`{"from":"%d","to":"%d","amount":%d,"status":"success"}`,
 			from, to, amount,
 		)
 

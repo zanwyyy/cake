@@ -12,7 +12,6 @@ import (
 	"project/config"
 	grpcapi "project/internal/api"
 	"project/internal/service"
-	"project/pkg/interceptor"
 
 	pb "project/pkg/pb"
 )
@@ -22,9 +21,9 @@ type GRPCServer struct {
 	Addr string
 }
 
-func NewGRPCServer(svc service.TransferService, auth service.AuthService, config *config.Config) *GRPCServer {
+func NewGRPCServer(svc service.TransferService, auth service.AuthService, config *config.Config, authInterceptor grpc.UnaryServerInterceptor) *GRPCServer {
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.AuthInterceptor),
+		grpc.UnaryInterceptor(authInterceptor),
 	)
 	pb.RegisterTransferServiceServer(s, grpcapi.NewTransferService(svc, auth))
 	return &GRPCServer{

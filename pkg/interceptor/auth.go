@@ -26,80 +26,58 @@ func isProtectedMethod(method string) bool {
 	return ok
 }
 
-func AuthInterceptor(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (interface{}, error) {
-	config := config.LoadConfig()
-	redis := repo.NewRedisClient(config)
+func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error) {
 
-	if !isProtectedMethod(info.FullMethod) {
+		if !isProtectedMethod(info.FullMethod) {
+			return handler(ctx, req)
+		}
+
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, status.Error(codes.Unauthenticated, "metadata not found")
+		}
+
+		authHeader := md.Get("authorization")
+		if len(authHeader) == 0 {
+			return nil, status.Error(codes.Unauthenticated, "authorization header missing")
+		}
+
+		tokenString := strings.TrimPrefix(authHeader[0], "Bearer ")
+		if tokenString == authHeader[0] {
+			return nil, status.Error(codes.Unauthenticated, "invalid authorization header format")
+		}
+
+		claims, err := utils.ValidateAccessToken(tokenString, config.JWT.AccessSecret)
+		if err != nil {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
+		}
+
+		var userID int64
+		switch r := req.(type) {
+		case *pb.SendMoneyRequest:
+			userID = r.From
+		case *pb.GetBalanceRequest:
+			userID = r.UserId
+		case *pb.ListTransactionsRequest:
+			userID = r.UserId
+		default:
+			userID = claims.UserID
+		}
+
+		storedToken := redis.GetToken(ctx, userID)
+		if storedToken == "" {
+			return nil, status.Error(codes.Unauthenticated, "token revoked or expired")
+		}
+		if storedToken != tokenString {
+			return nil, status.Error(codes.Unauthenticated, "invalid token")
+		}
+
 		return handler(ctx, req)
 	}
-
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "metadata not found")
-	}
-
-	// Lấy Authorization header
-	authHeader := md.Get("authorization")
-	if len(authHeader) == 0 {
-		return nil, status.Error(codes.Unauthenticated, "authorization header missing")
-	}
-
-	// Format: Bearer <token>
-	tokenString := strings.TrimPrefix(authHeader[0], "Bearer ")
-	if tokenString == authHeader[0] {
-		return nil, status.Error(codes.Unauthenticated, "invalid authorization header format")
-	}
-
-	// Verify JWT
-	claims, err := utils.ValidateAccessToken(tokenString)
-	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
-	}
-
-	// Check token trong Redis
-	storedToken := redis.GetToken(ctx, claims.UserID)
-	if storedToken == "" {
-		return nil, status.Error(codes.Unauthenticated, "token revoked or expired")
-	}
-
-	if tokenString != storedToken {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid token: ")
-	}
-
-	switch info.FullMethod {
-	case "/transfer.v1.TransferService/SendMoney":
-		r, ok := req.(*pb.SendMoneyRequest)
-		if !ok {
-			return nil, status.Error(codes.Internal, "invalid request type for SendMoney")
-		}
-		if r.Base.UserId != claims.UserID {
-			return nil, status.Error(codes.PermissionDenied, "user id mismatch")
-		}
-
-	case "/transfer.v1.TransferService/ListTransactions":
-		r, ok := req.(*pb.ListTransactionsRequest)
-		if !ok {
-			return nil, status.Error(codes.Internal, "invalid request type for ListTransactions")
-		}
-		if r.Base.UserId != claims.UserID {
-			return nil, status.Error(codes.PermissionDenied, "user id mismatch")
-		}
-
-	case "/transfer.v1.TransferService/GetBalance":
-		r, ok := req.(*pb.GetBalanceRequest)
-		if !ok {
-			return nil, status.Error(codes.Internal, "invalid request type for GetBalance")
-		}
-		if r.Base.UserId != claims.UserID {
-			return nil, status.Error(codes.PermissionDenied, "user id mismatch")
-		}
-	}
-	return handler(ctx, req)
-
 }

@@ -31,6 +31,13 @@ func NewauthService(config *config.Config, db repo.TransferRepository, redis rep
 	}
 }
 
+func (a *authService) GetUserID(ctx context.Context) int64 {
+	if v, ok := ctx.Value(a.config.UserIDKey).(int64); ok {
+		return v
+	}
+	return 0
+}
+
 func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	pass, err := a.db.GetPassword(ctx, req.Username)
 	if err != nil || pass != req.Password {

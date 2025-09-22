@@ -6,13 +6,18 @@ import (
 	"time"
 )
 
+type ctxKeyID string
+
+const userIDKey ctxKeyID = "userID"
+
 type Config struct {
-	Server   ServerConfig
-	Gateway  GatewayConfig
-	Database DatabaseConfig
-	PubSub   PubSubConfig
-	JWT      JWT
-	Redis    RedisConfig
+	Server    ServerConfig
+	Gateway   GatewayConfig
+	Database  DatabaseConfig
+	PubSub    PubSubConfig
+	JWT       JWT
+	Redis     RedisConfig
+	UserIDKey ctxKeyID
 }
 
 type ServerConfig struct {

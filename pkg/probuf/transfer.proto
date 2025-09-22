@@ -6,6 +6,7 @@ option go_package = "project/pkg/pb;pb";
 
 import "google/api/annotations.proto";
 
+// ------------------ Transfer Service ------------------
 service TransferService {
   rpc SendMoney (SendMoneyRequest) returns (SendMoneyResponse) {
     option (google.api.http) = {
@@ -25,21 +26,26 @@ service TransferService {
       get: "/v1/transfer/{user_id}/balance"
     };
   }
+}
 
+// ------------------ Auth Service ------------------
+service AuthService {
   rpc Login (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/api/v1/login"
+      post: "/v1/auth/login"
       body: "*"
     };
   }
 
   rpc Logout (LogoutRequest) returns (LogoutResponse) {
     option (google.api.http) = {
-      get: "/v1/auth/{user_id}/logout"
+      post: "/v1/auth/logout"
+      body: "*"
     };
   }
 }
 
+// ------------------ Messages ------------------
 message SendMoneyRequest {
   int64 from = 1;   
   int64 to = 2;
@@ -86,7 +92,6 @@ message LoginResponse {
 }
 
 message LogoutRequest {
-  int64 user_id = 1;
 }
 
 message LogoutResponse {

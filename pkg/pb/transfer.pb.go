@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ------------------ Messages ------------------
 type SendMoneyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	From          int64                  `protobuf:"varint,1,opt,name=from,proto3" json:"from,omitempty"`
@@ -492,7 +493,6 @@ func (x *LoginResponse) GetAccessToken() string {
 
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -525,13 +525,6 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_transfer_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *LogoutRequest) GetUserId() int64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
 }
 
 type LogoutResponse struct {
@@ -609,18 +602,18 @@ const file_transfer_proto_rawDesc = "" +
 	"\busername\x18\x01 \x01(\x03R\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"2\n" +
 	"\rLoginResponse\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"(\n" +
-	"\rLogoutRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\"*\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\x0f\n" +
+	"\rLogoutRequest\"*\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xc1\x04\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\x81\x03\n" +
 	"\x0fTransferService\x12h\n" +
 	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x8c\x01\n" +
 	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/transfer/{user_id}/transactions\x12u\n" +
 	"\n" +
-	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/transfer/{user_id}/balance\x12X\n" +
-	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/login\x12d\n" +
-	"\x06Logout\x12\x1a.transfer.v1.LogoutRequest\x1a\x1b.transfer.v1.LogoutResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/auth/{user_id}/logoutB\x13Z\x11project/pkg/pb;pbb\x06proto3"
+	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/transfer/{user_id}/balance2\xc7\x01\n" +
+	"\vAuthService\x12Y\n" +
+	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12]\n" +
+	"\x06Logout\x12\x1a.transfer.v1.LogoutRequest\x1a\x1b.transfer.v1.LogoutResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logoutB\x13Z\x11project/pkg/pb;pbb\x06proto3"
 
 var (
 	file_transfer_proto_rawDescOnce sync.Once
@@ -653,13 +646,13 @@ var file_transfer_proto_depIdxs = []int32{
 	0,  // 1: transfer.v1.TransferService.SendMoney:input_type -> transfer.v1.SendMoneyRequest
 	2,  // 2: transfer.v1.TransferService.ListTransactions:input_type -> transfer.v1.ListTransactionsRequest
 	5,  // 3: transfer.v1.TransferService.GetBalance:input_type -> transfer.v1.GetBalanceRequest
-	7,  // 4: transfer.v1.TransferService.Login:input_type -> transfer.v1.LoginRequest
-	9,  // 5: transfer.v1.TransferService.Logout:input_type -> transfer.v1.LogoutRequest
+	7,  // 4: transfer.v1.AuthService.Login:input_type -> transfer.v1.LoginRequest
+	9,  // 5: transfer.v1.AuthService.Logout:input_type -> transfer.v1.LogoutRequest
 	1,  // 6: transfer.v1.TransferService.SendMoney:output_type -> transfer.v1.SendMoneyResponse
 	4,  // 7: transfer.v1.TransferService.ListTransactions:output_type -> transfer.v1.ListTransactionsResponse
 	6,  // 8: transfer.v1.TransferService.GetBalance:output_type -> transfer.v1.GetBalanceResponse
-	8,  // 9: transfer.v1.TransferService.Login:output_type -> transfer.v1.LoginResponse
-	10, // 10: transfer.v1.TransferService.Logout:output_type -> transfer.v1.LogoutResponse
+	8,  // 9: transfer.v1.AuthService.Login:output_type -> transfer.v1.LoginResponse
+	10, // 10: transfer.v1.AuthService.Logout:output_type -> transfer.v1.LogoutResponse
 	6,  // [6:11] is the sub-list for method output_type
 	1,  // [1:6] is the sub-list for method input_type
 	1,  // [1:1] is the sub-list for extension type_name
@@ -680,7 +673,7 @@ func file_transfer_proto_init() {
 			NumEnums:      0,
 			NumMessages:   11,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_transfer_proto_goTypes,
 		DependencyIndexes: file_transfer_proto_depIdxs,

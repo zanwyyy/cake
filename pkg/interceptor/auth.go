@@ -19,6 +19,7 @@ var protectedMethods = map[string]struct{}{
 	"/transfer.v1.TransferService/SendMoney":        {},
 	"/transfer.v1.TransferService/ListTransactions": {},
 	"/transfer.v1.TransferService/GetBalance":       {},
+	"/transfer.v1.TransferService/Logout":           {},
 }
 
 func isProtectedMethod(method string) bool {
@@ -77,7 +78,7 @@ func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.Unar
 		if storedToken != tokenString {
 			return nil, status.Error(codes.Unauthenticated, "invalid token")
 		}
-
+		ctx = context.WithValue(ctx, config.UserIDKey, userID)
 		return handler(ctx, req)
 	}
 }

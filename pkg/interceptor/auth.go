@@ -56,7 +56,7 @@ func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.Unar
 
 		claims, err := utils.ValidateAccessToken(tokenString, config.JWT.AccessSecret)
 		if err != nil {
-			return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
+			return nil, status.Errorf(codes.Unauthenticated, "validate : invalid token: %v", err)
 		}
 
 		var userID int64
@@ -73,7 +73,7 @@ func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.Unar
 
 		storedToken := redis.GetToken(ctx, userID)
 		if storedToken == "" {
-			return nil, status.Error(codes.Unauthenticated, "token revoked or expired")
+			return nil, status.Error(codes.Unauthenticated, "user token not found or expired/revoked")
 		}
 		if storedToken != tokenString {
 			return nil, status.Error(codes.Unauthenticated, "invalid token")

@@ -28,7 +28,7 @@ func GenerateAccessToken(userID int64, sessionID string, accessTokenTTL time.Dur
 
 func ValidateAccessToken(tokenStr string, accessSecret string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return accessSecret, nil
+		return []byte(accessSecret), nil
 	})
 	if err != nil || !token.Valid {
 		return nil, errors.New("invalid access token")

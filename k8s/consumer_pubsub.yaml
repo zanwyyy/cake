@@ -14,15 +14,15 @@ spec:
     spec:
       containers:
         - name: app-consumer-pubsub
-          image: docker.io/library/app-server:latest
-          imagePullPolicy: Never
+          image: app-server:v1.0.1
+          imagePullPolicy: IfNotPresent
 
           command: ["./server", "pubsub-consumer"]
           env:
             - name: PROJECT_ID
               value: demo-project
-            - name: PubSub_Endpoint
-              value: host.docker.internal:8085
+            - name: Pubsub_Endpoint
+              value: host.minikube.internal:8085
             - name: Pubsub_Subcription
               value: sub-transactions
             - name: Pubsub_Topic

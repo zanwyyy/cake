@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: app-server
-          image: docker.io/library/app-server:latest
-          imagePullPolicy: Never
+          image: app-server:v1.0.1
+          imagePullPolicy: IfNotPresent
           command: ["./server", "server"]
           ports:
             - containerPort: 8080
@@ -25,6 +25,13 @@ spec:
               value: postgres://demo_user:demo_pass@postgres:5432/demo_db?sslmode=disable
             - name: GATEWAY_GRPC_ADDR
               value: app-server:9090
+            - name: Redis_Addr
+              value: redis:6379
+            - name: Pubsub_Endpoint
+              value: host.minikube.internal:8085
+            - name: Pubsub_Topic
+              value: transactions
+
 ---
 apiVersion: v1
 kind: Service

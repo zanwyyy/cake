@@ -48,6 +48,7 @@ func TestInsertTransaction_Success(t *testing.T) {
 	require.NoError(t, err)
 	toBalanceBefore, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
+	fmt.Printf("[Before] From: %d, To: %d\n", fromBalanceBefore, toBalanceBefore)
 
 	err = repo.InsertTransaction(ctx, from, to, amount)
 	require.NoError(t, err)
@@ -56,6 +57,7 @@ func TestInsertTransaction_Success(t *testing.T) {
 	require.NoError(t, err)
 	toBalanceAfter, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
+	fmt.Printf("[After]  From: %d, To: %d\n", fromBalanceAfter, toBalanceAfter)
 
 	require.Equal(t, fromBalanceBefore-amount, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore+amount, toBalanceAfter)
@@ -77,6 +79,7 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 
 	var countBefore int64
 	require.NoError(t, db.Table("transactions").Count(&countBefore).Error)
+	fmt.Printf("[Before] From: %d, To: %d\n", fromBalanceBefore, toBalanceBefore)
 
 	err = repo.InsertTransaction(ctx, from, to, amount)
 	require.Error(t, err)
@@ -88,6 +91,7 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 
 	require.Equal(t, fromBalanceBefore, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore, toBalanceAfter)
+	fmt.Printf("[After] From: %d, To: %d\n", fromBalanceBefore, toBalanceBefore)
 
 	var countAfter int64
 	require.NoError(t, db.Table("transactions").Count(&countAfter).Error)
@@ -108,6 +112,7 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 	require.NoError(t, err)
 	toBalanceBefore, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
+	fmt.Printf("[Before Concurrent] From: %d, To: %d\n", fromBalanceBefore, toBalanceBefore)
 
 	var wg sync.WaitGroup
 	errs := make(chan error, n)
@@ -140,6 +145,7 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 	require.NoError(t, err)
 	toBalanceAfter, err := repo.GetBalance(ctx, to)
 	require.NoError(t, err)
+	fmt.Printf("[After Concurrent] From: %d, To: %d\n", fromBalanceAfter, toBalanceAfter)
 
 	expectedFrom := fromBalanceBefore - int64(n)*amount
 	expectedTo := toBalanceBefore + int64(n)*amount

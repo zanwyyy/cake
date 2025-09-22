@@ -43,7 +43,7 @@ func validateUserID(ctx context.Context, r *GormTransferRepo, userID int64) erro
 
 func validateAmount(amount int64) error {
 	if amount <= 0 {
-		return fmt.Errorf("amount cannot be negative")
+		return fmt.Errorf("amount cannot be negative or zero")
 	}
 
 	const maxAmount = 1000000000 // 1 billion limit

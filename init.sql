@@ -9,21 +9,23 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ========================
---  Sessions table
+--  Transactions table
 -- ========================
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    access_token TEXT,
-    refresh_token TEXT,
-    version INT NOT NULL DEFAULT 1,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    from_user BIGINT NOT NULL,
+    to_user BIGINT NOT NULL,
+    amount BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_from_user FOREIGN KEY (from_user) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_to_user FOREIGN KEY (to_user) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- ========================
 --  Indexes
 -- ========================
+CREATE INDEX IF NOT EXISTS idx_transactions_from_user ON transactions(from_user);
+CREATE INDEX IF NOT EXISTS idx_transactions_to_user ON transactions(to_user);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
 -- ========================
@@ -35,4 +37,5 @@ VALUES
     (2, 'bob', 5000, 'password456'),
     (3, 'bb', 5000, 'password')
 ON CONFLICT (id) DO NOTHING;
+
 

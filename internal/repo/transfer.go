@@ -17,7 +17,6 @@ type TransferRepository interface {
 	ListTransactions(ctx context.Context, from int64) ([]model.Transaction, error)
 	GetBalance(ctx context.Context, userID int64) (int64, error)
 	GetPassword(ctx context.Context, userId int64) (string, error)
-	GetTokenSession(ctx context.Context, userID int64, sessionID string) (string, error)
 }
 
 type GormTransferRepo struct {
@@ -138,9 +137,6 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64
 			return err
 		}
 
-		return nil
-	})
-	if e == nil {
 		msg := fmt.Sprintf(
 			`{"from":"%d","to":"%d","amount":%d,"status":"success"}`,
 			from, to, amount,
@@ -150,7 +146,8 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64
 			log.Printf("failed to publish: %v", err)
 			return err
 		}
-	}
+		return nil
+	})
 
 	return e
 }
@@ -188,20 +185,4 @@ func (r *GormTransferRepo) GetPassword(ctx context.Context, userID int64) (strin
 	}
 
 	return password, nil
-}
-
-func (r *GormTransferRepo) GetTokenSession(ctx context.Context, userID int64, sessionID string) (string, error) {
-	var token string
-
-	err := r.db.WithContext(ctx).
-		Table("sessions").
-		Select("access_token").
-		Where("user_id = ? AND id = ?", userID, sessionID).
-		Scan(&token).Error
-
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
 }

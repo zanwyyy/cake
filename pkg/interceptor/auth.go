@@ -19,7 +19,7 @@ var protectedMethods = map[string]struct{}{
 	"/transfer.v1.TransferService/SendMoney":        {},
 	"/transfer.v1.TransferService/ListTransactions": {},
 	"/transfer.v1.TransferService/GetBalance":       {},
-	"/transfer.v1.TransferService/Logout":           {},
+	"/transfer.v1.AuthService/Logout":               {},
 }
 
 func isProtectedMethod(method string) bool {

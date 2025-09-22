@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"project/config"
+	grpcapi "project/internal/api"
 	"project/internal/repo"
 	"project/internal/service"
 	"project/pkg/interceptor"
@@ -27,6 +28,8 @@ func NewServeCommand() *cobra.Command {
 					service.NewauthService,
 					repo.NewRedisClient,
 					interceptor.NewAuthInterceptor,
+					grpcapi.NewAuthService,
+					grpcapi.NewTransferService,
 				),
 				fx.Invoke(
 					RegisterHTTPLifecycle,

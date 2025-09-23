@@ -40,10 +40,14 @@ func (a *authService) GetUserID(ctx context.Context) int64 {
 
 func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	pass, err := a.db.GetPassword(ctx, req.Username)
-	if err != nil || pass != req.Password {
+	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "invalid username or password")
 	}
 
+	check := utils.CheckPassword(pass, req.Password)
+	if !check {
+		return nil, status.Error(codes.Unauthenticated, "invalid username or password")
+	}
 	tokenID := utils.NewSessionID()
 
 	accessToken, err := utils.GenerateAccessToken(req.Username, tokenID, a.config.JWT.AccessTokenTTL, a.config.JWT.AccessSecret)

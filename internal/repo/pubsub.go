@@ -97,7 +97,6 @@ func (p *PubSub) Subscribe(ctx context.Context) error {
 		}
 
 		if resp == nil || len(resp.ReceivedMessages) == 0 {
-			fmt.Println(err)
 			continue
 		}
 

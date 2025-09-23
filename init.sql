@@ -24,9 +24,9 @@ CREATE INDEX IF NOT EXISTS idx_transactions_to_user ON transactions(to_user);
 
 INSERT INTO users (id, name, balance, password)
 VALUES 
-    (1, 'alice', 10000, 'password123'),
-    (2, 'bob', 5000, 'password456'),
-    (3, 'bb', 5000, 'password')
+    (1, 'alice', 10000, '$2a$10$6Uo9VmU.2UTwJ6iXf/3E5eL3zQiQiyN6VvT54StM2Q/Dye09zyGrW'),
+    (2, 'bob', 5000, '$2a$10$0Bch0Vk5AasCtDE1kYrmg.2K3b0DGfxMFjGxa4WcO77eExKcGtB3O'),
+    (3, 'bb', 5000, '$2a$10$QOIEuaIEl2KAd0Jfb3iJVeQIUjoFnYPKFA0JLS3cE.pOwUEOLfv9a')
 ON CONFLICT (id) DO NOTHING;
 
 

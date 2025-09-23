@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"project/config"
@@ -60,26 +61,42 @@ func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.Unar
 			return nil, status.Errorf(codes.Unauthenticated, "validate : invalid token: %v", err)
 		}
 
-		var userID int64
-		switch r := req.(type) {
-		case *pb.SendMoneyRequest:
-			userID = r.From
-		case *pb.GetBalanceRequest:
-			userID = r.UserId
-		case *pb.ListTransactionsRequest:
-			userID = r.UserId
-		default:
-			userID = claims.UserID
+		if claims.UserID <= 0 {
+			return nil, status.Error(codes.Unauthenticated, "invalid user id in token")
 		}
 
-		storedToken := redis.GetToken(ctx, userID)
+		storedToken, err := redis.GetToken(ctx, claims.UserID)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "auth service unavailable")
+		}
 		if storedToken == "" {
-			return nil, status.Error(codes.Unauthenticated, "user token not found or expired/revoked")
+			return nil, status.Error(codes.Unauthenticated, "token revoked or expired")
 		}
-		if storedToken != tokenString {
-			return nil, status.Error(codes.Unauthenticated, "invalid token")
+		if strings.TrimSpace(storedToken) != strings.TrimSpace(tokenString) {
+			return nil, status.Error(codes.Unauthenticated, "token mismatch")
 		}
-		ctx = context.WithValue(ctx, config.UserIDKey, userID)
+
+		fmt.Println(claims.UserID)
+
+		switch r := req.(type) {
+		case *pb.SendMoneyRequest:
+			if r.From != claims.UserID {
+				fmt.Println(r.From)
+				return nil, status.Error(codes.PermissionDenied, "you can only send from your own account")
+			}
+		case *pb.GetBalanceRequest:
+			if r.UserId != claims.UserID {
+				fmt.Print(r.UserId)
+				return nil, status.Error(codes.PermissionDenied, "access denied")
+			}
+		case *pb.ListTransactionsRequest:
+			if r.UserId != claims.UserID {
+				fmt.Print(r.UserId)
+				return nil, status.Error(codes.PermissionDenied, "access denied")
+			}
+		}
+
+		ctx = context.WithValue(ctx, config.UserIDKey, claims.UserID)
 		return handler(ctx, req)
 	}
 }

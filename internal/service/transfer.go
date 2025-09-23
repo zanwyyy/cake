@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"project/internal/repo"
+	"project/internal/utils"
 	pb "project/pkg/pb"
 )
 
@@ -26,26 +27,9 @@ func NewTransferService(r repo.TransferRepository, pb repo.PubSubInterface) Tran
 	}
 }
 
-func ValidateUserID(userID int64) error {
-	if userID <= 0 {
-		return fmt.Errorf("invalid user_id: must be greater than 0")
-	}
-	return nil
-}
-
-func ValidateAmount(amount int64) error {
-	if amount <= 0 {
-		return fmt.Errorf("invalid amount: must be greater than 0")
-	}
-	if amount >= 1_000_000_000 {
-		return fmt.Errorf("invalid amount: must be less than 1_000_000_000")
-	}
-	return nil
-}
-
 func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
 
-	if err := ValidateUserID(req.UserId); err != nil {
+	if err := utils.ValidateUserID(req.UserId); err != nil {
 		return nil, err
 	}
 
@@ -69,20 +53,20 @@ func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTran
 
 func (s *transferService) InsertTransaction(ctx context.Context, from, to int64, amount int64) (*pb.SendMoneyResponse, error) {
 
-	if err := ValidateUserID(from); err != nil {
+	if err := utils.ValidateUserID(from); err != nil {
 		return &pb.SendMoneyResponse{
 			Success:      false,
 			ErrorMessage: err.Error(),
 		}, err
 	}
-	if err := ValidateUserID(to); err != nil {
+	if err := utils.ValidateUserID(to); err != nil {
 		return &pb.SendMoneyResponse{
 			Success:      false,
 			ErrorMessage: err.Error(),
 		}, err
 	}
 
-	if err := ValidateAmount(amount); err != nil {
+	if err := utils.ValidateAmount(amount); err != nil {
 		return &pb.SendMoneyResponse{
 			Success:      false,
 			ErrorMessage: err.Error(),
@@ -122,7 +106,7 @@ func (s *transferService) InsertTransaction(ctx context.Context, from, to int64,
 
 func (s *transferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
 
-	if err := ValidateUserID(req.UserId); err != nil {
+	if err := utils.ValidateUserID(req.UserId); err != nil {
 		return nil, err
 	}
 

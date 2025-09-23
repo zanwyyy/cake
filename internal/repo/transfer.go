@@ -54,40 +54,67 @@ func (r *GormTransferRepo) ListTransactions(ctx context.Context, from int64) ([]
 }
 
 func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64, amount int64) error {
+
 	tx := r.db.Begin()
 	if tx.Error != nil {
 		return tx.Error
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
 
-	var fromUser, toUser model.User
+	var firstID, secondID int64
+	if from < to {
+		firstID, secondID = from, to
+	} else {
+		firstID, secondID = to, from
+	}
+
+	var user1, user2 model.User
 
 	if err := model.NewUserQuerySet(tx.Set("gorm:query_option", "FOR UPDATE")).
-		IDEq(from).
-		One(&fromUser); err != nil {
+		IDEq(firstID).
+		One(&user1); err != nil {
 		tx.Rollback()
+		if gorm.IsRecordNotFoundError(err) {
+			return fmt.Errorf("user %d not found", firstID)
+		}
 		return err
+	}
+
+	if err := model.NewUserQuerySet(tx.Set("gorm:query_option", "FOR UPDATE")).
+		IDEq(secondID).
+		One(&user2); err != nil {
+		tx.Rollback()
+		if gorm.IsRecordNotFoundError(err) {
+			return fmt.Errorf("user %d not found", secondID)
+		}
+		return err
+	}
+
+	var fromUser, toUser *model.User
+	if firstID == from {
+		fromUser = &user1
+		toUser = &user2
+	} else {
+		fromUser = &user2
+		toUser = &user1
 	}
 
 	if fromUser.Balance < amount {
 		tx.Rollback()
-		return fmt.Errorf("balance < amount")
+		return fmt.Errorf("insufficient balance")
 	}
 
-	if err := model.NewUserQuerySet(tx.Set("gorm:query_option", "FOR UPDATE")).
-		IDEq(to).
-		One(&toUser); err != nil {
+	if err := tx.Model(fromUser).Update("balance", fromUser.Balance-amount).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Model(&fromUser).
-		Update("balance", fromUser.Balance-amount).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if err := tx.Model(&toUser).
-		Update("balance", toUser.Balance+amount).Error; err != nil {
+	if err := tx.Model(toUser).Update("balance", toUser.Balance+amount).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

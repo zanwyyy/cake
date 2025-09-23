@@ -13,7 +13,7 @@ import (
 type RedisClient interface {
 	SaveToken(ctx context.Context, userID int64, token string, ttl time.Duration) error
 	DeleteToken(ctx context.Context, userID int64) error
-	GetToken(ctx context.Context, userID int64) string
+	GetToken(ctx context.Context, userID int64) (string, error)
 }
 
 func NewRedisClient(config *config.Config) RedisClient {
@@ -37,6 +37,7 @@ type redisClient struct {
 }
 
 func (s *redisClient) SaveToken(ctx context.Context, userID int64, token string, ttl time.Duration) error {
+
 	key := buildTokenKey(userID)
 	return s.rdb.Set(ctx, key, token, ttl).Err()
 }
@@ -47,14 +48,14 @@ func (s *redisClient) DeleteToken(ctx context.Context, userID int64) error {
 func buildTokenKey(userID int64) string {
 	return "auth:token:" + fmt.Sprint(userID)
 }
-func (s *redisClient) GetToken(ctx context.Context, userID int64) string {
+func (s *redisClient) GetToken(ctx context.Context, userID int64) (string, error) {
 	key := buildTokenKey(userID)
 	val, err := s.rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
-		return ""
+		return "", nil
 	}
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return val
+	return val, nil
 }

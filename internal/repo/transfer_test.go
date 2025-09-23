@@ -84,7 +84,7 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 
 	require.Equal(t, fromBalanceBefore, fromBalanceAfter)
 	require.Equal(t, toBalanceBefore, toBalanceAfter)
-	fmt.Printf("[After] From: %d, To: %d\n", fromBalanceBefore, toBalanceBefore)
+	fmt.Printf("[After] From: %d, To: %d\n", fromBalanceAfter, toBalanceAfter)
 
 	var countAfter int64
 	require.NoError(t, db.Table("transactions").Count(&countAfter).Error)
@@ -117,7 +117,7 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 			defer wg.Done()
 			<-startLine
 
-			jobCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			jobCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 
 			if err := repo.InsertTransaction(jobCtx, from, to, amount); err != nil {
@@ -162,4 +162,50 @@ func TestInsertTransaction_InvalidUsers(t *testing.T) {
 
 	err = repo.InsertTransaction(ctx, 1, -1, 100)
 	require.Error(t, err)
+}
+
+func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
+	ctx := context.Background()
+	db := setupTestDB(t)
+	repo := &GormTransferRepo{db: db}
+
+	userA := int64(1)
+	userB := int64(2)
+	amount := int64(1)
+
+	_, err := repo.GetBalance(ctx, userA)
+	require.NoError(t, err)
+	_, err = repo.GetBalance(ctx, userB)
+	require.NoError(t, err)
+
+	var wg sync.WaitGroup
+	errs := make(chan error, 2)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := repo.InsertTransaction(ctx, userA, userB, amount); err != nil {
+			errs <- fmt.Errorf("A→B failed: %w", err)
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := repo.InsertTransaction(ctx, userB, userA, amount); err != nil {
+			errs <- fmt.Errorf("B→A failed: %w", err)
+		}
+	}()
+
+	wg.Wait()
+	close(errs)
+
+	var errorCount int
+	for err := range errs {
+		t.Log(err)
+		errorCount++
+	}
+
+	require.Equal(t, 0, errorCount, "phát hiện lỗi trong giao dịch đồng thời")
+
 }

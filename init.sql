@@ -1,6 +1,4 @@
--- ========================
---  Users table
--- ========================
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -8,9 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 );
 
--- ========================
---  Transactions table
--- ========================
+
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     from_user BIGINT NOT NULL,
@@ -21,16 +17,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     CONSTRAINT fk_to_user FOREIGN KEY (to_user) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- ========================
---  Indexes
--- ========================
+
 CREATE INDEX IF NOT EXISTS idx_transactions_from_user ON transactions(from_user);
 CREATE INDEX IF NOT EXISTS idx_transactions_to_user ON transactions(to_user);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
--- ========================
---  Demo seed data (optional)
--- ========================
+
 INSERT INTO users (id, name, balance, password)
 VALUES 
     (1, 'alice', 10000, 'password123'),

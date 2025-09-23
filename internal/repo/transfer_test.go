@@ -7,37 +7,30 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
-// setup test DB with GORM
 func setupTestDB(t *testing.T) *gorm.DB {
-	dsn := "postgres://demo_user:demo_pass@localhost:5432/demo_db?sslmode=disable&connect_timeout=10"
+	dsn := "host=localhost user=demo_user password=demo_pass dbname=demo_db sslmode=disable connect_timeout=10"
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	require.NoError(t, err)
+	db, err := gorm.Open("postgres", dsn)
+	require.NoError(t, err, "failed to open GORM v1 DB")
 
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
+	sqlDB := db.DB()
+	require.NoError(t, err, "failed to get sql.DB from GORM")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	err = sqlDB.PingContext(ctx)
-	require.NoError(t, err, "Failed to connect to test database")
+
+	require.NoError(t, sqlDB.PingContext(ctx), "failed to connect to test database")
 
 	return db
 }
-
-type MockPubSub struct{}
-
-func (m *MockPubSub) Publish(msg []byte) error            { return nil }
-func (m *MockPubSub) Subscribe(ctx context.Context) error { return nil }
-
 func TestInsertTransaction_Success(t *testing.T) {
 	db := setupTestDB(t)
-	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
+	repo := &GormTransferRepo{db: db}
 
 	ctx := context.Background()
 	from := int64(1)
@@ -65,7 +58,7 @@ func TestInsertTransaction_Success(t *testing.T) {
 
 func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 	db := setupTestDB(t)
-	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
+	repo := &GormTransferRepo{db: db}
 
 	ctx := context.Background()
 	from := int64(1)
@@ -100,7 +93,7 @@ func TestInsertTransaction_InsufficientBalance(t *testing.T) {
 
 func TestInsertTransaction_Concurrent(t *testing.T) {
 	db := setupTestDB(t)
-	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
+	repo := &GormTransferRepo{db: db}
 
 	from := int64(2)
 	to := int64(1)
@@ -160,7 +153,7 @@ func TestInsertTransaction_Concurrent(t *testing.T) {
 
 func TestInsertTransaction_InvalidUsers(t *testing.T) {
 	db := setupTestDB(t)
-	repo := &GormTransferRepo{db: db, pubsub: &MockPubSub{}}
+	repo := &GormTransferRepo{db: db}
 
 	ctx := context.Background()
 

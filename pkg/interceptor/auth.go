@@ -15,16 +15,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var protectedMethods = map[string]struct{}{
-	"/transfer.v1.TransferService/SendMoney":        {},
-	"/transfer.v1.TransferService/ListTransactions": {},
-	"/transfer.v1.TransferService/GetBalance":       {},
-	"/transfer.v1.AuthService/Logout":               {},
-}
-
 func isProtectedMethod(method string) bool {
-	_, ok := protectedMethods[method]
-	return ok
+	switch method {
+	case
+		"/transfer.v1.TransferService/SendMoney",
+		"/transfer.v1.TransferService/ListTransactions",
+		"/transfer.v1.TransferService/GetBalance",
+		"/transfer.v1.AuthService/Logout":
+		return true
+	default:
+		return false
+	}
 }
 
 func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.UnaryServerInterceptor {

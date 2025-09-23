@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: demo_user
       POSTGRES_PASSWORD: demo_pass
       POSTGRES_DB: demo_db
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:

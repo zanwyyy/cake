@@ -46,7 +46,7 @@ func validateAmount(amount int64) error {
 		return fmt.Errorf("amount cannot be negative or zero")
 	}
 
-	const maxAmount = 1000000000 // 1 billion limit
+	const maxAmount = 1000000000
 	if amount > maxAmount {
 		return fmt.Errorf("amount exceeds maximum limit")
 	}
@@ -76,9 +76,7 @@ func NewPostgresTransferRepo(db *gorm.DB, pubsub PubSubInterface) TransferReposi
 
 func (r *GormTransferRepo) ListTransactions(ctx context.Context, from int64) ([]model.Transaction, error) {
 	var txs []model.Transaction
-	if err := validateUserID(ctx, r, from); err != nil {
-		return nil, err
-	}
+
 	if err := r.db.WithContext(ctx).
 		Where("from_user = ?", from).
 		Find(&txs).Error; err != nil {
@@ -89,14 +87,6 @@ func (r *GormTransferRepo) ListTransactions(ctx context.Context, from int64) ([]
 
 func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64, amount int64) error {
 	if err := validateAmount(amount); err != nil {
-		return err
-	}
-
-	if err := validateUserID(ctx, r, from); err != nil {
-		return err
-	}
-
-	if err := validateUserID(ctx, r, to); err != nil {
 		return err
 	}
 
@@ -155,10 +145,6 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64
 func (r *GormTransferRepo) GetBalance(ctx context.Context, userID int64) (int64, error) {
 	var balance int64
 
-	if err := validateUserID(ctx, r, userID); err != nil {
-		return 0, err
-	}
-
 	if err := r.db.WithContext(ctx).
 		Table("users").
 		Select("balance").
@@ -171,10 +157,6 @@ func (r *GormTransferRepo) GetBalance(ctx context.Context, userID int64) (int64,
 
 func (r *GormTransferRepo) GetPassword(ctx context.Context, userID int64) (string, error) {
 	var password string
-
-	if err := validateUserID(ctx, r, userID); err != nil {
-		return "", err
-	}
 
 	if err := r.db.WithContext(ctx).
 		Table("users").

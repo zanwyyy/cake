@@ -89,6 +89,13 @@ func (s *transferService) InsertTransaction(ctx context.Context, from, to int64,
 		}, err
 	}
 
+	if from == to {
+		return &pb.SendMoneyResponse{
+			Success:      false,
+			ErrorMessage: "from_user can equal to to_user",
+		}, fmt.Errorf("cannot transfer to yourself")
+	}
+
 	err := s.repo.InsertTransaction(ctx, from, to, amount)
 	if err != nil {
 		return &pb.SendMoneyResponse{

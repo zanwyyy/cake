@@ -5,7 +5,6 @@ go 1.25.1
 require (
 	cloud.google.com/go/pubsub v1.49.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
-	github.com/jinzhu/gorm v1.9.2
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/api v0.247.0
@@ -16,16 +15,11 @@ require (
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/denisenkom/go-mssqldb v0.0.0-20190315220205-a8ed825ac853 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
-	github.com/go-sql-driver/mysql v0.0.0-20170822214809-26471af196a1 // indirect
-	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/lib/pq v1.0.0 // indirect
 )
 
 require (

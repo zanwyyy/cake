@@ -178,7 +178,6 @@ func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
 	require.NoError(t, err)
 	balanceB1, err := repo.GetBalance(ctx, userB)
 	require.NoError(t, err)
-	fmt.Println(balanceA1, " ", balanceB1)
 	var wg sync.WaitGroup
 	errs := make(chan error, 2)
 
@@ -193,7 +192,7 @@ func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := repo.InsertTransaction(ctx, userB, userA, amount); err != nil {
+		if err := repo.InsertTransaction(ctx, userB, userA, amount2); err != nil {
 			errs <- fmt.Errorf("B→A failed: %w", err)
 		}
 	}()
@@ -210,7 +209,6 @@ func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
 	require.NoError(t, err)
 	balanceB2, err := repo.GetBalance(ctx, userB)
 	require.NoError(t, err)
-	fmt.Println(balanceA2, " ", balanceB2)
 
 	require.Equal(t, balanceA1-amount+amount2, balanceA2, "UserA balance mismatch")
 	require.Equal(t, balanceB1+amount-amount2, balanceB2, "UserB balance mismatch")

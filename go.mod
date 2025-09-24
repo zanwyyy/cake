@@ -11,6 +11,7 @@ require (
 	google.golang.org/api v0.247.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c
 	google.golang.org/protobuf v1.36.7
+	gorm.io/gorm v1.31.0
 )
 
 require (
@@ -20,8 +21,11 @@ require (
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/go-sql-driver/mysql v0.0.0-20170822214809-26471af196a1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.6.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/lib/pq v1.0.0 // indirect
-	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 )
 
 require (
@@ -69,4 +73,5 @@ require (
 	github.com/spf13/pflag v1.0.9 // indirect
 	go.uber.org/fx v1.24.0
 	google.golang.org/grpc v1.75.0
+	gorm.io/driver/postgres v1.6.0
 )

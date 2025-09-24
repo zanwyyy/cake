@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"project/internal/repo"
 	"project/internal/utils"
 	pb "project/pkg/pb"
@@ -91,13 +90,7 @@ func (s *transferService) InsertTransaction(ctx context.Context, from, to int64,
 		`{"from":"%d","to":"%d","amount":%d,"status":"success"}`,
 		from, to, amount,
 	)
-	if err := s.pubsub.Publish([]byte(msg)); err != nil {
-		log.Printf("failed to publish: %v", err)
-		return &pb.SendMoneyResponse{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		}, err
-	}
+	s.pubsub.Publish([]byte(msg))
 	return &pb.SendMoneyResponse{
 		Success:      true,
 		ErrorMessage: "",

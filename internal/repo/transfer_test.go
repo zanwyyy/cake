@@ -7,18 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	dsn := "host=localhost user=demo_user password=demo_pass dbname=demo_db sslmode=disable connect_timeout=10"
 
-	db, err := gorm.Open("postgres", dsn)
-	require.NoError(t, err, "failed to open GORM v1 DB")
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	require.NoError(t, err, "failed to open GORM v2 DB")
 
-	sqlDB := db.DB()
+	sqlDB, err := db.DB()
 	require.NoError(t, err, "failed to get sql.DB from GORM")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

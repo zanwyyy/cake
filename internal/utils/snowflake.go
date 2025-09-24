@@ -16,3 +16,4 @@ func NewSessionID() string {
 	}
 	return node.Generate().String()
 }
+

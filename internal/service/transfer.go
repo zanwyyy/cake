@@ -3,30 +3,28 @@ package service
 import (
 	"context"
 	"fmt"
+	"project/internal/model"
 	"project/internal/repo"
 	"project/internal/utils"
-	pb "project/pkg/pb"
 )
 
 type TransferService interface {
-	ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error)
-	InsertTransaction(ctx context.Context, from, to int64, amount int64) (*pb.SendMoneyResponse, error)
-	GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error)
+	ListTransactions(ctx context.Context, in model.ListTransactionsInput) (*model.ListTransactionsOutput, error)
+	InsertTransaction(ctx context.Context, in model.SendMoneyInput) (*model.SendMoneyOutput, error)
+	GetBalance(ctx context.Context, in model.GetBalanceInput) (*model.GetBalanceOutput, error)
 }
 
 type transferService struct {
-	repo   repo.TransferRepository
-	pubsub repo.PubSubInterface
+	repo repo.TransferRepository
 }
 
-func NewTransferService(r repo.TransferRepository, pb repo.PubSubInterface) TransferService {
+func NewTransferService(r repo.TransferRepository) TransferService {
 	return &transferService{
-		repo:   r,
-		pubsub: pb,
+		repo: r,
 	}
 }
 
-func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
+func (s *transferService) ListTransactions(ctx context.Context, req model.ListTransactionsInput) (*model.ListTransactionsOutput, error) {
 
 	if err := utils.ValidateUserID(req.UserId); err != nil {
 		return nil, err
@@ -37,67 +35,42 @@ func (s *transferService) ListTransactions(ctx context.Context, req *pb.ListTran
 		return nil, err
 	}
 
-	resp := &pb.ListTransactionsResponse{}
+	out := &model.ListTransactionsOutput{}
 	for _, tx := range txs {
-		resp.Transactions = append(resp.Transactions, &pb.Transaction{
-			Id:     int64(tx.ID),
+		out.Transactions = append(out.Transactions, model.Transaction{
+			ID:     tx.ID,
 			From:   tx.From,
 			To:     tx.To,
 			Amount: tx.Amount,
 		})
 	}
-	resp.Number = int64(len(txs))
-	return resp, nil
+	out.Number = int64(len(txs))
+	return out, nil
 }
 
-func (s *transferService) InsertTransaction(ctx context.Context, from, to int64, amount int64) (*pb.SendMoneyResponse, error) {
-
-	if err := utils.ValidateUserID(from); err != nil {
-		return &pb.SendMoneyResponse{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		}, err
+func (s *transferService) InsertTransaction(ctx context.Context, req model.SendMoneyInput) (*model.SendMoneyOutput, error) {
+	if err := utils.ValidateUserID(req.From); err != nil {
+		return &model.SendMoneyOutput{Success: false, ErrorMessage: err.Error()}, err
 	}
-	if err := utils.ValidateUserID(to); err != nil {
-		return &pb.SendMoneyResponse{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		}, err
+	if err := utils.ValidateUserID(req.To); err != nil {
+		return &model.SendMoneyOutput{Success: false, ErrorMessage: err.Error()}, err
 	}
-
-	if err := utils.ValidateAmount(amount); err != nil {
-		return &pb.SendMoneyResponse{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		}, err
+	if err := utils.ValidateAmount(req.Amount); err != nil {
+		return &model.SendMoneyOutput{Success: false, ErrorMessage: err.Error()}, err
+	}
+	if req.From == req.To {
+		return &model.SendMoneyOutput{Success: false, ErrorMessage: "from_user cannot equal to to_user"}, fmt.Errorf("cannot transfer to yourself")
 	}
 
-	if from == to {
-		return &pb.SendMoneyResponse{
-			Success:      false,
-			ErrorMessage: "from_user can equal to to_user",
-		}, fmt.Errorf("cannot transfer to yourself")
-	}
-
-	err := s.repo.InsertTransaction(ctx, from, to, amount)
+	err := s.repo.InsertTransaction(ctx, req.From, req.To, req.Amount)
 	if err != nil {
-		return &pb.SendMoneyResponse{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		}, err
+		return &model.SendMoneyOutput{Success: false, ErrorMessage: err.Error()}, err
 	}
-	msg := fmt.Sprintf(
-		`{"from":"%d","to":"%d","amount":%d,"status":"success"}`,
-		from, to, amount,
-	)
-	s.pubsub.Publish([]byte(msg))
-	return &pb.SendMoneyResponse{
-		Success:      true,
-		ErrorMessage: "",
-	}, nil
+
+	return &model.SendMoneyOutput{Success: true}, nil
 }
 
-func (s *transferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
+func (s *transferService) GetBalance(ctx context.Context, req model.GetBalanceInput) (*model.GetBalanceOutput, error) {
 
 	if err := utils.ValidateUserID(req.UserId); err != nil {
 		return nil, err
@@ -108,8 +81,5 @@ func (s *transferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequ
 		return nil, err
 	}
 
-	return &pb.GetBalanceResponse{
-		UserId:  req.UserId,
-		Balance: balance,
-	}, nil
+	return &model.GetBalanceOutput{UserId: req.UserId, Balance: balance}, nil
 }

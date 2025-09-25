@@ -8,15 +8,13 @@ import (
 )
 
 type Claims struct {
-	UserID    int64  `json:"user_id"`
-	SessionID string `json:"sid"`
+	UserID int64 `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(userID int64, sessionID string, accessTokenTTL time.Duration, accessSecret string) (string, error) {
+func GenerateAccessToken(userID int64, accessTokenTTL time.Duration, accessSecret string) (string, error) {
 	claims := &Claims{
-		UserID:    userID,
-		SessionID: sessionID,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(accessTokenTTL)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

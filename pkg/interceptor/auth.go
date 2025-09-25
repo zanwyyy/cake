@@ -8,7 +8,6 @@ import (
 	"project/config"
 	"project/internal/repo"
 	"project/internal/utils"
-	"project/pkg/pb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,13 +18,10 @@ import (
 func isProtectedMethod(method string) bool {
 	switch method {
 	case
-		"/transfer.v1.TransferService/SendMoney",
-		"/transfer.v1.TransferService/ListTransactions",
-		"/transfer.v1.TransferService/GetBalance",
-		"/transfer.v1.AuthService/Logout":
-		return true
-	default:
+		"/transfer.v1.AuthService/Login":
 		return false
+	default:
+		return true
 	}
 }
 
@@ -77,24 +73,6 @@ func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.Unar
 		}
 
 		fmt.Println(claims.UserID)
-
-		switch r := req.(type) {
-		case *pb.SendMoneyRequest:
-			if r.From != claims.UserID {
-				fmt.Println(r.From)
-				return nil, status.Error(codes.PermissionDenied, "you can only send from your own account")
-			}
-		case *pb.GetBalanceRequest:
-			if r.UserId != claims.UserID {
-				fmt.Print(r.UserId)
-				return nil, status.Error(codes.PermissionDenied, "access denied")
-			}
-		case *pb.ListTransactionsRequest:
-			if r.UserId != claims.UserID {
-				fmt.Print(r.UserId)
-				return nil, status.Error(codes.PermissionDenied, "access denied")
-			}
-		}
 
 		ctx = context.WithValue(ctx, config.UserIDKey, claims.UserID)
 		return handler(ctx, req)

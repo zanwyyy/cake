@@ -66,18 +66,9 @@ func request_TransferService_ListTransactions_0(ctx context.Context, marshaler r
 	var (
 		protoReq ListTransactionsRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["user_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user_id")
-	}
-	protoReq.UserId, err = runtime.Int64(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
 	}
 	msg, err := client.ListTransactions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -87,16 +78,7 @@ func local_request_TransferService_ListTransactions_0(ctx context.Context, marsh
 	var (
 		protoReq ListTransactionsRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
-	val, ok := pathParams["user_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user_id")
-	}
-	protoReq.UserId, err = runtime.Int64(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
-	}
 	msg, err := server.ListTransactions(ctx, &protoReq)
 	return msg, metadata, err
 }
@@ -105,18 +87,9 @@ func request_TransferService_GetBalance_0(ctx context.Context, marshaler runtime
 	var (
 		protoReq GetBalanceRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["user_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user_id")
-	}
-	protoReq.UserId, err = runtime.Int64(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
 	}
 	msg, err := client.GetBalance(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -126,16 +99,7 @@ func local_request_TransferService_GetBalance_0(ctx context.Context, marshaler r
 	var (
 		protoReq GetBalanceRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
-	val, ok := pathParams["user_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user_id")
-	}
-	protoReq.UserId, err = runtime.Int64(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
-	}
 	msg, err := server.GetBalance(ctx, &protoReq)
 	return msg, metadata, err
 }
@@ -226,7 +190,7 @@ func RegisterTransferServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/transfer.v1.TransferService/ListTransactions", runtime.WithHTTPPathPattern("/v1/transfer/{user_id}/transactions"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/transfer.v1.TransferService/ListTransactions", runtime.WithHTTPPathPattern("/v1/transfer/transactions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -246,7 +210,7 @@ func RegisterTransferServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/transfer.v1.TransferService/GetBalance", runtime.WithHTTPPathPattern("/v1/transfer/{user_id}/balance"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/transfer.v1.TransferService/GetBalance", runtime.WithHTTPPathPattern("/v1/transfer/balance"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -371,7 +335,7 @@ func RegisterTransferServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/transfer.v1.TransferService/ListTransactions", runtime.WithHTTPPathPattern("/v1/transfer/{user_id}/transactions"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/transfer.v1.TransferService/ListTransactions", runtime.WithHTTPPathPattern("/v1/transfer/transactions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -388,7 +352,7 @@ func RegisterTransferServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/transfer.v1.TransferService/GetBalance", runtime.WithHTTPPathPattern("/v1/transfer/{user_id}/balance"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/transfer.v1.TransferService/GetBalance", runtime.WithHTTPPathPattern("/v1/transfer/balance"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -406,8 +370,8 @@ func RegisterTransferServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 var (
 	pattern_TransferService_SendMoney_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "transfer", "send"}, ""))
-	pattern_TransferService_ListTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "transfer", "user_id", "transactions"}, ""))
-	pattern_TransferService_GetBalance_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "transfer", "user_id", "balance"}, ""))
+	pattern_TransferService_ListTransactions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "transfer", "transactions"}, ""))
+	pattern_TransferService_GetBalance_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "transfer", "balance"}, ""))
 )
 
 var (

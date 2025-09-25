@@ -62,7 +62,6 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64
 
 		var user1, user2 model.User
 
-		// dùng queryset + FOR UPDATE
 		if err := model.NewUserQuerySet(tx.Clauses(clause.Locking{Strength: "UPDATE"})).
 			IDEq(firstID).
 			One(&user1); err != nil {

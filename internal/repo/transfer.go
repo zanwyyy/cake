@@ -115,7 +115,7 @@ func (r *GormTransferRepo) InsertTransaction(ctx context.Context, from, to int64
 
 func (r *GormTransferRepo) GetBalance(ctx context.Context, userID int64) (int64, error) {
 	var user model.User
-	err := model.NewUserQuerySet(r.db).IDEq(userID).Limit(1).One(&user)
+	err := model.NewUserQuerySet(r.db).IDEq(userID).One(&user)
 	if err != nil {
 		return 0, err
 	}
@@ -124,7 +124,7 @@ func (r *GormTransferRepo) GetBalance(ctx context.Context, userID int64) (int64,
 
 func (r *GormTransferRepo) GetPassword(ctx context.Context, userID int64) (string, error) {
 	var user model.User
-	err := model.NewUserQuerySet(r.db).IDEq(userID).Limit(1).One(&user)
+	err := model.NewUserQuerySet(r.db).IDEq(userID).One(&user)
 	if err != nil {
 		return "", err
 	}

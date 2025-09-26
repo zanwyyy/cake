@@ -17,13 +17,13 @@ service TransferService {
 
   rpc ListTransactions (ListTransactionsRequest) returns (ListTransactionsResponse) {
     option (google.api.http) = {
-      get: "/v1/transfer/{user_id}/transactions"
+      get: "/v1/transfer/transactions"
     };
   }
 
   rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse) {
     option (google.api.http) = {
-      get: "/v1/transfer/{user_id}/balance"
+      get: "/v1/transfer/balance"
     };
   }
 }
@@ -47,9 +47,8 @@ service AuthService {
 
 // ------------------ Messages ------------------
 message SendMoneyRequest {
-  int64 from = 1;   
-  int64 to = 2;
-  int64 amount = 3;
+  int64 to = 1;
+  int64 amount = 2;
 }
 
 message SendMoneyResponse {
@@ -58,7 +57,6 @@ message SendMoneyResponse {
 }
 
 message ListTransactionsRequest {
-  int64 user_id = 1;
 }
 
 message Transaction {
@@ -74,7 +72,6 @@ message ListTransactionsResponse {
 }
 
 message GetBalanceRequest {
-  int64 user_id = 1;
 }
 
 message GetBalanceResponse {

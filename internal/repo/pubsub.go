@@ -15,18 +15,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type PubSubInterface interface {
-	Subscribe(ctx context.Context) error
-	Publish(data []byte) error
-}
-
 type PubSub struct {
 	pubClient *pubsub.PublisherClient
 	subClient *pubsub.SubscriberClient
 	config    *config.Config
 }
 
-func NewPubSubClient(config *config.Config) (PubSubInterface, error) {
+func NewPubSubClient(config *config.Config) (*PubSub, error) {
 	ctx := context.Background()
 
 	opts := []option.ClientOption{
@@ -52,6 +47,10 @@ func NewPubSubClient(config *config.Config) (PubSubInterface, error) {
 		subClient: subClient,
 		config:    config,
 	}, nil
+}
+func (p *PubSub) Hello(msg string) error {
+	fmt.Println("Hello from PubSub:", msg)
+	return nil
 }
 
 func (p *PubSub) Publish(data []byte) error {

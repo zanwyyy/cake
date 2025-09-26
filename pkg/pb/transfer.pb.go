@@ -25,9 +25,8 @@ const (
 // ------------------ Messages ------------------
 type SendMoneyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	From          int64                  `protobuf:"varint,1,opt,name=from,proto3" json:"from,omitempty"`
-	To            int64                  `protobuf:"varint,2,opt,name=to,proto3" json:"to,omitempty"`
-	Amount        int64                  `protobuf:"varint,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	To            int64                  `protobuf:"varint,1,opt,name=to,proto3" json:"to,omitempty"`
+	Amount        int64                  `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -60,13 +59,6 @@ func (x *SendMoneyRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SendMoneyRequest.ProtoReflect.Descriptor instead.
 func (*SendMoneyRequest) Descriptor() ([]byte, []int) {
 	return file_transfer_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *SendMoneyRequest) GetFrom() int64 {
-	if x != nil {
-		return x.From
-	}
-	return 0
 }
 
 func (x *SendMoneyRequest) GetTo() int64 {
@@ -137,7 +129,6 @@ func (x *SendMoneyResponse) GetErrorMessage() string {
 
 type ListTransactionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -170,13 +161,6 @@ func (x *ListTransactionsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListTransactionsRequest.ProtoReflect.Descriptor instead.
 func (*ListTransactionsRequest) Descriptor() ([]byte, []int) {
 	return file_transfer_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ListTransactionsRequest) GetUserId() int64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
 }
 
 type Transaction struct {
@@ -301,7 +285,6 @@ func (x *ListTransactionsResponse) GetTransactions() []*Transaction {
 
 type GetBalanceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -334,13 +317,6 @@ func (x *GetBalanceRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetBalanceRequest.ProtoReflect.Descriptor instead.
 func (*GetBalanceRequest) Descriptor() ([]byte, []int) {
 	return file_transfer_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *GetBalanceRequest) GetUserId() int64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
 }
 
 type GetBalanceResponse struct {
@@ -575,16 +551,14 @@ var File_transfer_proto protoreflect.FileDescriptor
 
 const file_transfer_proto_rawDesc = "" +
 	"\n" +
-	"\x0etransfer.proto\x12\vtransfer.v1\x1a\x1cgoogle/api/annotations.proto\"N\n" +
-	"\x10SendMoneyRequest\x12\x12\n" +
-	"\x04from\x18\x01 \x01(\x03R\x04from\x12\x0e\n" +
-	"\x02to\x18\x02 \x01(\x03R\x02to\x12\x16\n" +
-	"\x06amount\x18\x03 \x01(\x03R\x06amount\"R\n" +
+	"\x0etransfer.proto\x12\vtransfer.v1\x1a\x1cgoogle/api/annotations.proto\":\n" +
+	"\x10SendMoneyRequest\x12\x0e\n" +
+	"\x02to\x18\x01 \x01(\x03R\x02to\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\x03R\x06amount\"R\n" +
 	"\x11SendMoneyResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
-	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"2\n" +
-	"\x17ListTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\"Y\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"\x19\n" +
+	"\x17ListTransactionsRequest\"Y\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\x03R\x04from\x12\x0e\n" +
@@ -592,9 +566,8 @@ const file_transfer_proto_rawDesc = "" +
 	"\x06amount\x18\x04 \x01(\x03R\x06amount\"p\n" +
 	"\x18ListTransactionsResponse\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\x03R\x06number\x12<\n" +
-	"\ftransactions\x18\x02 \x03(\v2\x18.transfer.v1.TransactionR\ftransactions\",\n" +
-	"\x11GetBalanceRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\"G\n" +
+	"\ftransactions\x18\x02 \x03(\v2\x18.transfer.v1.TransactionR\ftransactions\"\x13\n" +
+	"\x11GetBalanceRequest\"G\n" +
 	"\x12GetBalanceResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x18\n" +
 	"\abalance\x18\x02 \x01(\x03R\abalance\"F\n" +
@@ -605,12 +578,12 @@ const file_transfer_proto_rawDesc = "" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\x0f\n" +
 	"\rLogoutRequest\"*\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\x81\x03\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xed\x02\n" +
 	"\x0fTransferService\x12h\n" +
-	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x8c\x01\n" +
-	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/transfer/{user_id}/transactions\x12u\n" +
+	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x82\x01\n" +
+	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/transfer/transactions\x12k\n" +
 	"\n" +
-	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/transfer/{user_id}/balance2\xc7\x01\n" +
+	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/transfer/balance2\xc7\x01\n" +
 	"\vAuthService\x12Y\n" +
 	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12]\n" +
 	"\x06Logout\x12\x1a.transfer.v1.LogoutRequest\x1a\x1b.transfer.v1.LogoutResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logoutB\x13Z\x11project/pkg/pb;pbb\x06proto3"

@@ -20,7 +20,7 @@ type GRPCServer struct {
 	Addr string
 }
 
-func NewGRPCServer(svc *grpcapi.TransferService, auth *grpcapi.AuthService, config *config.Config, authInterceptor grpc.UnaryServerInterceptor) *GRPCServer {
+func NewGRPCServer(svc *grpcapi.Transfer, auth *grpcapi.Auth, config *config.Config, authInterceptor grpc.UnaryServerInterceptor) *GRPCServer {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor),
 	)

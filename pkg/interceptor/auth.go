@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"project/config"
-	"project/internal/repo"
 	"project/internal/utils"
 
 	"google.golang.org/grpc"
@@ -25,7 +24,11 @@ func isProtectedMethod(method string) bool {
 	}
 }
 
-func NewAuthInterceptor(redis repo.RedisClient, config *config.Config) grpc.UnaryServerInterceptor {
+type RedisToken interface {
+	GetToken(ctx context.Context, userID int64) (string, error)
+}
+
+func NewAuthInterceptor(redis RedisToken, config *config.Config) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},

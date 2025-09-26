@@ -5,32 +5,40 @@ import (
 	"fmt"
 	"project/config"
 	"project/internal/model"
-	"project/internal/repo"
-	"project/internal/service"
 	pb "project/pkg/pb"
 )
 
-type TransferService struct {
+type Publisher interface {
+	Publish(data []byte) error
+}
+
+type TransferService interface {
+	ListTransactions(ctx context.Context, in model.ListTransactionsInput) (*model.ListTransactionsOutput, error)
+	InsertTransaction(ctx context.Context, in model.SendMoneyInput) (*model.SendMoneyOutput, error)
+	GetBalance(ctx context.Context, in model.GetBalanceInput) (*model.GetBalanceOutput, error)
+}
+
+type Transfer struct {
 	pb.UnimplementedTransferServiceServer
-	svc    service.TransferService
-	pubsub repo.PubSubInterface
+	svc    TransferService
+	pubsub Publisher
 	config *config.Config
 }
 
-func NewTransferService(svc service.TransferService, pubsub repo.PubSubInterface, config *config.Config) *TransferService {
-	return &TransferService{
+func NewTransferService(svc TransferService, pubsub Publisher, config *config.Config) *Transfer {
+	return &Transfer{
 		svc:    svc,
 		pubsub: pubsub,
 		config: config,
 	}
 }
-func (s *TransferService) GetUserID(ctx context.Context) int64 {
+func (s *Transfer) GetUserID(ctx context.Context) int64 {
 	if v, ok := ctx.Value(s.config.UserIDKey).(int64); ok {
 		return v
 	}
 	return 0
 }
-func (s *TransferService) SendMoney(ctx context.Context, req *pb.SendMoneyRequest) (*pb.SendMoneyResponse, error) {
+func (s *Transfer) SendMoney(ctx context.Context, req *pb.SendMoneyRequest) (*pb.SendMoneyResponse, error) {
 	userId := s.GetUserID(ctx)
 	in := model.SendMoneyInput{
 		From:   userId,
@@ -51,7 +59,7 @@ func (s *TransferService) SendMoney(ctx context.Context, req *pb.SendMoneyReques
 	return &pb.SendMoneyResponse{Success: out.Success, ErrorMessage: out.ErrorMessage}, nil
 }
 
-func (s *TransferService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
+func (s *Transfer) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {
 	userId := s.GetUserID(ctx)
 	in := model.ListTransactionsInput{UserId: userId}
 	out, err := s.svc.ListTransactions(ctx, in)
@@ -67,7 +75,7 @@ func (s *TransferService) ListTransactions(ctx context.Context, req *pb.ListTran
 	}
 	return resp, nil
 }
-func (s *TransferService) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
+func (s *Transfer) GetBalance(ctx context.Context, req *pb.GetBalanceRequest) (*pb.GetBalanceResponse, error) {
 	userId := s.GetUserID(ctx)
 	in := model.GetBalanceInput{UserId: userId}
 	out, err := s.svc.GetBalance(ctx, in)

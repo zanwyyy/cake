@@ -4,31 +4,35 @@ import (
 	"context"
 	"project/config"
 	"project/internal/model"
-	"project/internal/service"
 	pb "project/pkg/pb"
 )
 
-type AuthService struct {
+type AuthService interface {
+	Login(ctx context.Context, in model.LoginInput) (*model.LoginOutput, error)
+	Logout(ctx context.Context, in model.LogoutInput) (*model.LogoutOutput, error)
+}
+
+type Auth struct {
 	pb.UnimplementedAuthServiceServer
-	auth   service.AuthService
+	auth   AuthService
 	config *config.Config
 }
 
-func (a *AuthService) GetUserID(ctx context.Context) int64 {
+func (a *Auth) GetUserID(ctx context.Context) int64 {
 	if v, ok := ctx.Value(a.config.UserIDKey).(int64); ok {
 		return v
 	}
 	return 0
 }
 
-func NewAuthService(auth service.AuthService, config *config.Config) *AuthService {
-	return &AuthService{
+func NewAuth(auth AuthService, config *config.Config) *Auth {
+	return &Auth{
 		auth:   auth,
 		config: config,
 	}
 }
 
-func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *Auth) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	in := model.LoginInput{
 		Username: req.Username,
 		Password: req.Password,
@@ -40,7 +44,7 @@ func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	return &pb.LoginResponse{AccessToken: out.AccessToken}, nil
 }
 
-func (s *AuthService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+func (s *Auth) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
 	in := model.LogoutInput{UserID: s.GetUserID(ctx)}
 	out, err := s.auth.Logout(ctx, in)
 	if err != nil {

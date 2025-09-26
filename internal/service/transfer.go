@@ -4,27 +4,27 @@ import (
 	"context"
 	"fmt"
 	"project/internal/model"
-	"project/internal/repo"
 	"project/internal/utils"
 )
 
-type TransferService interface {
-	ListTransactions(ctx context.Context, in model.ListTransactionsInput) (*model.ListTransactionsOutput, error)
-	InsertTransaction(ctx context.Context, in model.SendMoneyInput) (*model.SendMoneyOutput, error)
-	GetBalance(ctx context.Context, in model.GetBalanceInput) (*model.GetBalanceOutput, error)
+type TransferRepo interface {
+	ListTransactions(ctx context.Context, from int64) ([]model.Transaction, error)
+	GetBalance(ctx context.Context, userID int64) (int64, error)
+	GetPassword(ctx context.Context, userID int64) (string, error)
+	InsertTransaction(ctx context.Context, from, to int64, amount int64) error
 }
 
-type transferService struct {
-	repo repo.TransferRepository
+type TransferService struct {
+	repo TransferRepo
 }
 
-func NewTransferService(r repo.TransferRepository) TransferService {
-	return &transferService{
+func NewTransferService(r TransferRepo) *TransferService {
+	return &TransferService{
 		repo: r,
 	}
 }
 
-func (s *transferService) ListTransactions(ctx context.Context, req model.ListTransactionsInput) (*model.ListTransactionsOutput, error) {
+func (s *TransferService) ListTransactions(ctx context.Context, req model.ListTransactionsInput) (*model.ListTransactionsOutput, error) {
 
 	if err := utils.ValidateUserID(req.UserId); err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s *transferService) ListTransactions(ctx context.Context, req model.ListTr
 	return out, nil
 }
 
-func (s *transferService) InsertTransaction(ctx context.Context, req model.SendMoneyInput) (*model.SendMoneyOutput, error) {
+func (s *TransferService) InsertTransaction(ctx context.Context, req model.SendMoneyInput) (*model.SendMoneyOutput, error) {
 	if err := utils.ValidateUserID(req.From); err != nil {
 		return &model.SendMoneyOutput{Success: false, ErrorMessage: err.Error()}, err
 	}
@@ -70,7 +70,7 @@ func (s *transferService) InsertTransaction(ctx context.Context, req model.SendM
 	return &model.SendMoneyOutput{Success: true}, nil
 }
 
-func (s *transferService) GetBalance(ctx context.Context, req model.GetBalanceInput) (*model.GetBalanceOutput, error) {
+func (s *TransferService) GetBalance(ctx context.Context, req model.GetBalanceInput) (*model.GetBalanceOutput, error) {
 
 	if err := utils.ValidateUserID(req.UserId); err != nil {
 		return nil, err

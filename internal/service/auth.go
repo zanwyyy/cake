@@ -5,40 +5,43 @@ import (
 	"log"
 	"project/config"
 	"project/internal/model"
-	"project/internal/repo"
 	"project/internal/utils"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type AuthService interface {
-	Login(ctx context.Context, in model.LoginInput) (*model.LoginOutput, error)
-	Logout(ctx context.Context, in model.LogoutInput) (*model.LogoutOutput, error)
+type DBClient interface {
+	GetPassword(ctx context.Context, userID int64) (string, error)
 }
 
-type authService struct {
-	db     repo.TransferRepository
+type RedisClient interface {
+	SaveToken(ctx context.Context, userID int64, token string, ttl time.Duration) error
+	DeleteToken(ctx context.Context, userID int64) error
+}
+type AuthService struct {
+	db     DBClient
 	config *config.Config
-	redis  repo.RedisClient
+	redis  RedisClient
 }
 
-func NewauthService(config *config.Config, db repo.TransferRepository, redis repo.RedisClient) AuthService {
-	return &authService{
+func NewAuthService(config *config.Config, db DBClient, redis RedisClient) *AuthService {
+	return &AuthService{
 		db:     db,
 		config: config,
 		redis:  redis,
 	}
 }
 
-func (a *authService) GetUserID(ctx context.Context) int64 {
+func (a *AuthService) GetUserID(ctx context.Context) int64 {
 	if v, ok := ctx.Value(a.config.UserIDKey).(int64); ok {
 		return v
 	}
 	return 0
 }
 
-func (a *authService) Login(ctx context.Context, req model.LoginInput) (*model.LoginOutput, error) {
+func (a *AuthService) Login(ctx context.Context, req model.LoginInput) (*model.LoginOutput, error) {
 
 	if err := utils.ValidateUserID(req.Username); err != nil {
 		return nil, err
@@ -68,7 +71,7 @@ func (a *authService) Login(ctx context.Context, req model.LoginInput) (*model.L
 	return &model.LoginOutput{AccessToken: accessToken}, nil
 }
 
-func (a *authService) Logout(ctx context.Context, in model.LogoutInput) (*model.LogoutOutput, error) {
+func (a *AuthService) Logout(ctx context.Context, in model.LogoutInput) (*model.LogoutOutput, error) {
 	userID := a.GetUserID(ctx)
 	err := a.redis.DeleteToken(ctx, userID)
 	if err != nil {

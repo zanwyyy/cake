@@ -12,13 +12,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type TransferRepository interface {
-	InsertTransaction(ctx context.Context, from, to int64, amount int64) error
-	ListTransactions(ctx context.Context, from int64) ([]model.Transaction, error)
-	GetBalance(ctx context.Context, userID int64) (int64, error)
-	GetPassword(ctx context.Context, userId int64) (string, error)
-}
-
 type GormTransferRepo struct {
 	db *gorm.DB
 }
@@ -36,7 +29,7 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-func NewPostgresTransferRepo(db *gorm.DB) TransferRepository {
+func NewPostgresTransferRepo(db *gorm.DB) *GormTransferRepo {
 	return &GormTransferRepo{db: db}
 }
 

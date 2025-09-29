@@ -18,9 +18,9 @@ func isNotProtectedMethod(method string) bool {
 	switch method {
 	case
 		"/transfer.v1.AuthService/Login":
-		return false
-	default:
 		return true
+	default:
+		return false
 	}
 }
 

@@ -37,9 +37,9 @@ service AuthService {
     };
   }
 
-  rpc Logout (LogoutRequest) returns (LogoutResponse) {
+   rpc Refresh (RefreshRequest) returns (RefreshResponse) {
     option (google.api.http) = {
-      post: "/v1/auth/logout"
+      post: "/v1/auth/refresh"
       body: "*"
     };
   }
@@ -86,11 +86,13 @@ message LoginRequest {
 
 message LoginResponse {
   string access_token = 1;
+  string refresh_token = 2;
 }
 
-message LogoutRequest {
+message RefreshRequest {
+  string refresh_token = 1;
 }
 
-message LogoutResponse {
-  bool success = 1;
+message RefreshResponse {
+  string access_token = 1;
 }

@@ -9,7 +9,7 @@ import (
 
 type AuthService interface {
 	Login(ctx context.Context, in model.LoginInput) (*model.LoginOutput, error)
-	Logout(ctx context.Context, in model.LogoutInput) (*model.LogoutOutput, error)
+	Refresh(ctx context.Context, in model.RefreshInput) (*model.RefreshOutput, error)
 }
 
 type Auth struct {
@@ -41,14 +41,21 @@ func (s *Auth) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRespon
 	if err != nil {
 		return nil, err
 	}
-	return &pb.LoginResponse{AccessToken: out.AccessToken}, nil
+	return &pb.LoginResponse{
+		AccessToken:  out.AccessToken,
+		RefreshToken: out.RefreshToken,
+	}, nil
 }
 
-func (s *Auth) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-	in := model.LogoutInput{UserID: s.GetUserID(ctx)}
-	out, err := s.auth.Logout(ctx, in)
+func (s *Auth) Refresh(ctx context.Context, req *pb.RefreshRequest) (*pb.RefreshResponse, error) {
+
+	in := model.RefreshInput{
+		RefreshToken: req.RefreshToken,
+	}
+
+	out, err := s.auth.Refresh(ctx, in)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.LogoutResponse{Success: out.Success}, nil
+	return &pb.RefreshResponse{AccessToken: out.AccessToken}, nil
 }

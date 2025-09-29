@@ -45,8 +45,10 @@ type RedisConfig struct {
 }
 
 type JWT struct {
-	AccessSecret   string
-	AccessTokenTTL time.Duration
+	AccessSecret    string
+	RefreshSecret   string
+	AccessTokenTTL  time.Duration
+	RefreshTokenTTL time.Duration
 }
 
 func LoadConfig() *Config {
@@ -68,8 +70,10 @@ func LoadConfig() *Config {
 			GRPCAddr: getEnv("GATEWAY_GRPC_ADDR", "localhost:9090"),
 		},
 		JWT: JWT{
-			AccessSecret:   getEnv("AccessSecret", "access"),
-			AccessTokenTTL: 5 * time.Minute,
+			AccessSecret:    getEnv("Access_Secret", "access"),
+			RefreshSecret:   getEnv("Refresh_Secret", "secret"),
+			AccessTokenTTL:  1 * time.Minute,
+			RefreshTokenTTL: 5 * time.Hour,
 		},
 		Redis: RedisConfig{
 			RedisAddr: getEnv("Redis_Addr", "localhost:6379"),

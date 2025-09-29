@@ -6,13 +6,14 @@ type LoginInput struct {
 }
 
 type LoginOutput struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+type RefreshInput struct {
+	RefreshToken string
+}
+
+type RefreshOutput struct {
 	AccessToken string
-}
-
-type LogoutInput struct {
-	UserID int64
-}
-
-type LogoutOutput struct {
-	Success bool
 }

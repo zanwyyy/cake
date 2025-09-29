@@ -426,6 +426,7 @@ func (x *LoginRequest) GetPassword() string {
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -467,26 +468,34 @@ func (x *LoginResponse) GetAccessToken() string {
 	return ""
 }
 
-type LogoutRequest struct {
+func (x *LoginResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+type RefreshRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LogoutRequest) Reset() {
-	*x = LogoutRequest{}
+func (x *RefreshRequest) Reset() {
+	*x = RefreshRequest{}
 	mi := &file_transfer_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LogoutRequest) String() string {
+func (x *RefreshRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LogoutRequest) ProtoMessage() {}
+func (*RefreshRequest) ProtoMessage() {}
 
-func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
+func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_transfer_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -498,32 +507,39 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
-func (*LogoutRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use RefreshRequest.ProtoReflect.Descriptor instead.
+func (*RefreshRequest) Descriptor() ([]byte, []int) {
 	return file_transfer_proto_rawDescGZIP(), []int{9}
 }
 
-type LogoutResponse struct {
+func (x *RefreshRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+type RefreshResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LogoutResponse) Reset() {
-	*x = LogoutResponse{}
+func (x *RefreshResponse) Reset() {
+	*x = RefreshResponse{}
 	mi := &file_transfer_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LogoutResponse) String() string {
+func (x *RefreshResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LogoutResponse) ProtoMessage() {}
+func (*RefreshResponse) ProtoMessage() {}
 
-func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
+func (x *RefreshResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_transfer_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -535,16 +551,16 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
-func (*LogoutResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use RefreshResponse.ProtoReflect.Descriptor instead.
+func (*RefreshResponse) Descriptor() ([]byte, []int) {
 	return file_transfer_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *LogoutResponse) GetSuccess() bool {
+func (x *RefreshResponse) GetAccessToken() string {
 	if x != nil {
-		return x.Success
+		return x.AccessToken
 	}
-	return false
+	return ""
 }
 
 var File_transfer_proto protoreflect.FileDescriptor
@@ -573,20 +589,22 @@ const file_transfer_proto_rawDesc = "" +
 	"\abalance\x18\x02 \x01(\x03R\abalance\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x03R\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"2\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"W\n" +
 	"\rLoginResponse\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\x0f\n" +
-	"\rLogoutRequest\"*\n" +
-	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xed\x02\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\"5\n" +
+	"\x0eRefreshRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"4\n" +
+	"\x0fRefreshResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken2\xed\x02\n" +
 	"\x0fTransferService\x12h\n" +
 	"\tSendMoney\x12\x1d.transfer.v1.SendMoneyRequest\x1a\x1e.transfer.v1.SendMoneyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/transfer/send\x12\x82\x01\n" +
 	"\x10ListTransactions\x12$.transfer.v1.ListTransactionsRequest\x1a%.transfer.v1.ListTransactionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/transfer/transactions\x12k\n" +
 	"\n" +
-	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/transfer/balance2\xc7\x01\n" +
+	"GetBalance\x12\x1e.transfer.v1.GetBalanceRequest\x1a\x1f.transfer.v1.GetBalanceResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/transfer/balance2\xcb\x01\n" +
 	"\vAuthService\x12Y\n" +
-	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12]\n" +
-	"\x06Logout\x12\x1a.transfer.v1.LogoutRequest\x1a\x1b.transfer.v1.LogoutResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logoutB\x13Z\x11project/pkg/pb;pbb\x06proto3"
+	"\x05Login\x12\x19.transfer.v1.LoginRequest\x1a\x1a.transfer.v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12a\n" +
+	"\aRefresh\x12\x1b.transfer.v1.RefreshRequest\x1a\x1c.transfer.v1.RefreshResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/auth/refreshB\x13Z\x11project/pkg/pb;pbb\x06proto3"
 
 var (
 	file_transfer_proto_rawDescOnce sync.Once
@@ -611,8 +629,8 @@ var file_transfer_proto_goTypes = []any{
 	(*GetBalanceResponse)(nil),       // 6: transfer.v1.GetBalanceResponse
 	(*LoginRequest)(nil),             // 7: transfer.v1.LoginRequest
 	(*LoginResponse)(nil),            // 8: transfer.v1.LoginResponse
-	(*LogoutRequest)(nil),            // 9: transfer.v1.LogoutRequest
-	(*LogoutResponse)(nil),           // 10: transfer.v1.LogoutResponse
+	(*RefreshRequest)(nil),           // 9: transfer.v1.RefreshRequest
+	(*RefreshResponse)(nil),          // 10: transfer.v1.RefreshResponse
 }
 var file_transfer_proto_depIdxs = []int32{
 	3,  // 0: transfer.v1.ListTransactionsResponse.transactions:type_name -> transfer.v1.Transaction
@@ -620,12 +638,12 @@ var file_transfer_proto_depIdxs = []int32{
 	2,  // 2: transfer.v1.TransferService.ListTransactions:input_type -> transfer.v1.ListTransactionsRequest
 	5,  // 3: transfer.v1.TransferService.GetBalance:input_type -> transfer.v1.GetBalanceRequest
 	7,  // 4: transfer.v1.AuthService.Login:input_type -> transfer.v1.LoginRequest
-	9,  // 5: transfer.v1.AuthService.Logout:input_type -> transfer.v1.LogoutRequest
+	9,  // 5: transfer.v1.AuthService.Refresh:input_type -> transfer.v1.RefreshRequest
 	1,  // 6: transfer.v1.TransferService.SendMoney:output_type -> transfer.v1.SendMoneyResponse
 	4,  // 7: transfer.v1.TransferService.ListTransactions:output_type -> transfer.v1.ListTransactionsResponse
 	6,  // 8: transfer.v1.TransferService.GetBalance:output_type -> transfer.v1.GetBalanceResponse
 	8,  // 9: transfer.v1.AuthService.Login:output_type -> transfer.v1.LoginResponse
-	10, // 10: transfer.v1.AuthService.Logout:output_type -> transfer.v1.LogoutResponse
+	10, // 10: transfer.v1.AuthService.Refresh:output_type -> transfer.v1.RefreshResponse
 	6,  // [6:11] is the sub-list for method output_type
 	1,  // [1:6] is the sub-list for method input_type
 	1,  // [1:1] is the sub-list for extension type_name

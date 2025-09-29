@@ -10,13 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisClient interface {
-	SaveToken(ctx context.Context, userID int64, token string, ttl time.Duration) error
-	DeleteToken(ctx context.Context, userID int64) error
-	GetToken(ctx context.Context, userID int64) (string, error)
-}
-
-func NewRedisClient(config *config.Config) RedisClient {
+func NewRedisClient(config *config.Config) *redisClient {
 	Rdb := redis.NewClient(&redis.Options{
 		Addr:     config.Redis.RedisAddr,
 		Password: config.Redis.Password,

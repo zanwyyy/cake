@@ -7,18 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	dsn := "host=localhost user=demo_user password=demo_pass dbname=demo_db sslmode=disable connect_timeout=10"
 
-	db, err := gorm.Open("postgres", dsn)
-	require.NoError(t, err, "failed to open GORM v1 DB")
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	require.NoError(t, err, "failed to open GORM v2 DB")
 
-	sqlDB := db.DB()
+	sqlDB, err := db.DB()
 	require.NoError(t, err, "failed to get sql.DB from GORM")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -172,12 +172,12 @@ func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
 	userA := int64(1)
 	userB := int64(2)
 	amount := int64(1)
+	amount2 := int64(10)
 
-	_, err := repo.GetBalance(ctx, userA)
+	balanceA1, err := repo.GetBalance(ctx, userA)
 	require.NoError(t, err)
-	_, err = repo.GetBalance(ctx, userB)
+	balanceB1, err := repo.GetBalance(ctx, userB)
 	require.NoError(t, err)
-
 	var wg sync.WaitGroup
 	errs := make(chan error, 2)
 
@@ -192,7 +192,7 @@ func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := repo.InsertTransaction(ctx, userB, userA, amount); err != nil {
+		if err := repo.InsertTransaction(ctx, userB, userA, amount2); err != nil {
 			errs <- fmt.Errorf("B→A failed: %w", err)
 		}
 	}()
@@ -205,7 +205,13 @@ func TestInsertTransaction_ConcurrentDeadlock(t *testing.T) {
 		t.Log(err)
 		errorCount++
 	}
+	balanceA2, err := repo.GetBalance(ctx, userA)
+	require.NoError(t, err)
+	balanceB2, err := repo.GetBalance(ctx, userB)
+	require.NoError(t, err)
 
+	require.Equal(t, balanceA1-amount+amount2, balanceA2, "UserA balance mismatch")
+	require.Equal(t, balanceB1+amount-amount2, balanceB2, "UserB balance mismatch")
 	require.Equal(t, 0, errorCount, "phát hiện lỗi trong giao dịch đồng thời")
 
 }

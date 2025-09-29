@@ -4,41 +4,44 @@ import (
 	"context"
 	"log"
 	"project/config"
-	"project/internal/repo"
+	"project/internal/model"
 	"project/internal/utils"
-	"project/pkg/pb"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type AuthService interface {
-	Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error)
-	Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error)
+type DBClient interface {
+	GetPassword(ctx context.Context, userID int64) (string, error)
 }
 
-type authService struct {
-	db     repo.TransferRepository
+type RedisClient interface {
+	SaveToken(ctx context.Context, userID int64, token string, ttl time.Duration) error
+	DeleteToken(ctx context.Context, userID int64) error
+}
+type AuthService struct {
+	db     DBClient
 	config *config.Config
-	redis  repo.RedisClient
+	redis  RedisClient
 }
 
-func NewauthService(config *config.Config, db repo.TransferRepository, redis repo.RedisClient) AuthService {
-	return &authService{
+func NewAuthService(config *config.Config, db DBClient, redis RedisClient) *AuthService {
+	return &AuthService{
 		db:     db,
 		config: config,
 		redis:  redis,
 	}
 }
 
-func (a *authService) GetUserID(ctx context.Context) int64 {
+func (a *AuthService) GetUserID(ctx context.Context) int64 {
 	if v, ok := ctx.Value(a.config.UserIDKey).(int64); ok {
 		return v
 	}
 	return 0
 }
 
-func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (a *AuthService) Login(ctx context.Context, req model.LoginInput) (*model.LoginOutput, error) {
 
 	if err := utils.ValidateUserID(req.Username); err != nil {
 		return nil, err
@@ -53,9 +56,8 @@ func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	if !check {
 		return nil, status.Error(codes.Unauthenticated, "invalid username or password")
 	}
-	tokenID := utils.NewSessionID()
 
-	accessToken, err := utils.GenerateAccessToken(req.Username, tokenID, a.config.JWT.AccessTokenTTL, a.config.JWT.AccessSecret)
+	accessToken, err := utils.GenerateAccessToken(req.Username, a.config.JWT.AccessTokenTTL, a.config.JWT.AccessSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
 	}
@@ -65,15 +67,11 @@ func (a *authService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		return nil, status.Error(codes.Internal, "internal server error")
 	}
 
-	resp := &pb.LoginResponse{
-		AccessToken: accessToken,
-	}
-
-	log.Printf("[Login] success user=%d tokenID=%s", req.Username, tokenID)
-	return resp, nil
+	log.Printf("[Login] success user=%d ", req.Username)
+	return &model.LoginOutput{AccessToken: accessToken}, nil
 }
 
-func (a *authService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+func (a *AuthService) Logout(ctx context.Context, in model.LogoutInput) (*model.LogoutOutput, error) {
 	userID := a.GetUserID(ctx)
 	err := a.redis.DeleteToken(ctx, userID)
 	if err != nil {
@@ -82,5 +80,5 @@ func (a *authService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.Lo
 	}
 
 	log.Printf("[Logout] user=%d logged out successfully", userID)
-	return &pb.LogoutResponse{Success: true}, nil
+	return &model.LogoutOutput{Success: true}, nil
 }

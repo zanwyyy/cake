@@ -2,7 +2,6 @@ package interceptor
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"project/config"
@@ -17,7 +16,8 @@ import (
 func isNotProtectedMethod(method string) bool {
 	switch method {
 	case
-		"/transfer.v1.AuthService/Login":
+		"/transfer.v1.AuthService/Login",
+		"/transfer.v1.AuthService/Refresh":
 		return true
 	default:
 		return false
@@ -28,7 +28,7 @@ type RedisToken interface {
 	GetToken(ctx context.Context, userID int64) (string, error)
 }
 
-func NewAuthInterceptor(redis RedisToken, config *config.Config) grpc.UnaryServerInterceptor {
+func NewAuthInterceptor(config *config.Config) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -63,19 +63,6 @@ func NewAuthInterceptor(redis RedisToken, config *config.Config) grpc.UnaryServe
 		if claims.UserID <= 0 {
 			return nil, status.Error(codes.Unauthenticated, "invalid user id in token")
 		}
-
-		storedToken, err := redis.GetToken(ctx, claims.UserID)
-		if err != nil {
-			return nil, status.Error(codes.Internal, "auth service unavailable")
-		}
-		if storedToken == "" {
-			return nil, status.Error(codes.Unauthenticated, "token revoked or expired")
-		}
-		if strings.TrimSpace(storedToken) != strings.TrimSpace(tokenString) {
-			return nil, status.Error(codes.Unauthenticated, "token mismatch")
-		}
-
-		fmt.Println(claims.UserID)
 
 		ctx = context.WithValue(ctx, config.UserIDKey, claims.UserID)
 		return handler(ctx, req)

@@ -37,11 +37,6 @@ func NewServeCommand() *cobra.Command {
 					config.LoadConfig,
 					service.NewAuthService,
 
-					fx.Annotate(
-						repo.NewRedisClient,
-						fx.As(new(service.RedisClient)),
-						fx.As(new(interceptor.RedisToken)),
-					),
 					interceptor.NewAuthInterceptor,
 					fx.Annotate(
 						service.NewAuthService,

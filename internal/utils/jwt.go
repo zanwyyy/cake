@@ -37,3 +37,29 @@ func ValidateAccessToken(tokenStr string, accessSecret string) (*Claims, error) 
 	}
 	return claims, nil
 }
+
+func GenerateRefreshToken(userID int64, refreshTokenTTL time.Duration, refreshSecret string) (string, error) {
+	claims := &Claims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(refreshTokenTTL)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(refreshSecret))
+}
+
+func ValidateRefreshToken(tokenStr string, refreshSecret string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(refreshSecret), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid refresh token")
+	}
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return nil, errors.New("invalid claims")
+	}
+	return claims, nil
+}

@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func isProtectedMethod(method string) bool {
+func isNotProtectedMethod(method string) bool {
 	switch method {
 	case
 		"/transfer.v1.AuthService/Login":
@@ -36,7 +36,7 @@ func NewAuthInterceptor(redis RedisToken, config *config.Config) grpc.UnaryServe
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 
-		if !isProtectedMethod(info.FullMethod) {
+		if isNotProtectedMethod(info.FullMethod) {
 			return handler(ctx, req)
 		}
 

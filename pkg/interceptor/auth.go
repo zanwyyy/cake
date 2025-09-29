@@ -24,10 +24,6 @@ func isNotProtectedMethod(method string) bool {
 	}
 }
 
-type RedisToken interface {
-	GetToken(ctx context.Context, userID int64) (string, error)
-}
-
 func NewAuthInterceptor(config *config.Config) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,

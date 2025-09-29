@@ -72,7 +72,6 @@ func (a *AuthService) Refresh(ctx context.Context, in model.RefreshInput) (*mode
 	claims, err := utils.ValidateRefreshToken(in.RefreshToken, a.config.JWT.RefreshSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "invalid token: %v", err)
-
 	}
 	accessToken, err := utils.GenerateAccessToken(claims.UserID, a.config.JWT.AccessTokenTTL, a.config.JWT.AccessSecret)
 	if err != nil {
